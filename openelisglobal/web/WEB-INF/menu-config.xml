@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<MenuConfig>
+<Displayers>
+<Displayer name="TabbedMenu"
+  type="net.sf.navigator.displayer.TabbedMenuDisplayer"/>
+</Displayers>
+<Menus>
+<Menu name="myHome" title="homePage.menu.myHome" roles="User" page="/HomePage.do" toolTip="homePage.menu.myHome.toolTip">
+<!--Item name="First" title="First" location="First.jsp" roles="Moderator System"/>
+<Item name="Second" title="Second" location="Second.jsp"/>
+<Item name="Third" title="Third" location="Third.jsp"/-->
+</Menu>
+<Menu name="requestFormEntry" title="homePage.menu.requestFormEntry" page="/RequestFormEntryPage.do" toolTip="homePage.menu.requestFormEntry.toolTip">
+  <!--submenu on the left-->
+  <!--Item name="Fourth" title="Fourth" location="main.jsp"/-->
+</Menu>
+<Menu name="testManagement" title="homePage.menu.testManagement" page="/TestManagement.do" toolTip="homePage.menu.testManagement.toolTip">
+<!--<Item name="Fourth" title="Fourth" location="main.jsp"/>-->
+</Menu>
+<Menu name="resultManagement" title="homePage.menu.resultManagement" page="/ResultManagementPage.do" toolTip="homePage.menu.resultManagement.toolTip">
+<!--Item name="Fourth" title="Fourth" location="main.jsp"/-->
+</Menu>
+<Menu name="sampleTracking" title="homePage.menu.sampleTracking" page="/SampleTracking.do" toolTip="homePage.menu.sampleTracking.toolTip">
+<!--<Item name="Fourth" title="Fourth" location="main.jsp"/>-->
+</Menu>
+<Menu name="reports" title="homePage.menu.reports" page="/ReportsPage.do" toolTip="homePage.menu.reports.toolTip">
+  <!--submenu on the left-->
+  <!--Item name="Fourth" title="Fourth" location="main.jsp"/-->
+</Menu>
+<Menu name="qaEventManagement" title="homePage.menu.qaEventManagement" page="/QaEventManagementPage.do" toolTip="homePage.menu.qaEventManagement.toolTip">
+</Menu>
+<!--<Menu name="labInteractions" title="homePage.menu.labInteractions" page="/LabInteractionsPage.do" toolTip="homePage.menu.labInteractions.toolTip">
+<Item name="Fourth" title="Fourth" location="main.jsp"/>
+</Menu>
+--><Menu name="masterLists" title="homePage.menu.masterLists" page="/MasterListsPage.do" toolTip="homePage.menu.masterLists.toolTip">
+  <!--submenu on the left-->
+  <!--Item name="Project" title="Browse Project" page="/ProjectMenu.do"/>
+  <Item name="Organization" title="Browse Organization" page="/OrganizationMenu.do"/-->
+</Menu>
+<Menu name="logout" title="homePage.menu.logOut" description="Logout" page="/LoginPage.do" toolTip="homePage.menu.logOut.toolTip">
+</Menu>
+</Menus>
+</MenuConfig>

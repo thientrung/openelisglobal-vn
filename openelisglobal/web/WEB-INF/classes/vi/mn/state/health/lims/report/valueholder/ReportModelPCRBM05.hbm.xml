@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="vi.mn.state.health.lims.report.valueholder.ReportModelPCRBM05"
+		table="view_analysis_found_virus_pcr">
+		<id name="stt" type="java.lang.Double">
+			<column name="stt" />
+		</id>
+		<property name="patientId" type="java.lang.Integer">
+			<column name="patient_id" />
+		</property>
+		<property name="accessionNumber" type="java.lang.String">
+			<column name="accession_number" />
+		</property>
+		<property name="chartNumber" type="java.lang.String">
+			<column name="chart_number" />
+		</property>
+		<property name="collectionDate" type="java.sql.Timestamp">
+			<column name="collection_date" />
+		</property>
+		<property name="hour" type="java.lang.String">
+			<column name="hour" />
+		</property>
+		<property name="lastUpdated" type="java.sql.Timestamp">
+			<column name="lastupdated" />
+		</property>
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+		<property name="gender" type="java.lang.String">
+			<column name="gender" />
+		</property>
+		<property name="typeOfSample" type="java.lang.String">
+			<column name="type_of_sample" />
+		</property>
+		<property name="testId" type="java.lang.Integer">
+			<column name="test_id" />
+		</property>
+		<property name="testName" type="java.lang.String">
+			<column name="test_name" />
+		</property>
+		<property name="result" type="java.lang.String">
+			<column name="result" />
+		</property>
+		<property name="resultValue" type="java.lang.String">
+			<column name="result_value" />
+		</property>
+		<property name="resultType" type="java.lang.String">
+			<column name="result_type" />
+		</property>
+		<property name="loinc" type="java.lang.String">
+			<column name="loinc" />
+		</property>
+		<property name="receivedDate" type="java.sql.Timestamp">
+			<column name="received_date" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="testSection" type="java.lang.String">
+			<column name="test_section" />
+		</property>
+		<property name="paymentType" type="java.lang.String">
+			<column name="payment_type" />
+		</property>
+		<property name="department" type="java.lang.String">
+			<column name="department" />
+		</property>
+		<property name="isuranceNumber" type="java.lang.String">
+			<column name="isurance_number" />
+		</property>
+		<property name="address" type="java.lang.String">
+			<column name="address" />
+		</property>
+		<property name="value" type="java.lang.String">
+			<column name="value" />
+		</property>
+		<property name="patientType" type="java.lang.String">
+			<column name="patient_type" />
+		</property>
+		<property name="organizationName" type="java.lang.String">
+			<column name="organization_name" />
+		</property>
+		<property name="city" type="java.lang.String">
+			<column name="city" />
+		</property>
+		<property name="dob" type="java.sql.Timestamp">
+			<column name="dob" />
+		</property>
+		<property name="age" type="java.lang.Integer">
+			<column name="age" />
+		</property>
+		<property name="resultDO" type="java.lang.String">
+			<column name="result_do" />
+		</property>
+		<property name="resultCO" type="java.lang.String">
+			<column name="result_co" />
+		</property>
+	</class>
+</hibernate-mapping>

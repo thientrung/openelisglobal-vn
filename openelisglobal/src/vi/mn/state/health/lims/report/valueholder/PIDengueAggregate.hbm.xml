@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="vi.mn.state.health.lims.report.valueholder.PIDengueAggregate"
+		table="view_dengue_aggregate">
+		<id name="stt" type="java.lang.Integer">
+			<column name="stt" />
+		</id>
+		<property name="city" type="java.lang.String">
+			<column name="city" />
+		</property>
+		<property name="district" type="java.lang.String">
+			<column name="district" />
+		</property>
+		<property name="sortOrder" type="java.lang.Integer">
+			<column name="sort_order" />
+		</property>
+		<property name="patientType" type="java.lang.String">
+			<column name="patient_type" />
+		</property>
+		<property name="month" type="java.lang.Double">
+			<column name="month" />
+		</property>
+		<property name="year" type="java.lang.Double">
+			<column name="year" />
+		</property>
+		<property name="d1" type="java.lang.Long">
+			<column name="d1" />
+		</property>
+		<property name="d2" type="java.lang.Long">
+			<column name="d2" />
+		</property>
+		<property name="d3" type="java.lang.Long">
+			<column name="d3" />
+		</property>
+		<property name="d4" type="java.lang.Long">
+			<column name="d4" />
+		</property>
+		<property name="isolation" type="java.lang.Long">
+			<column name="isolation" />
+		</property>
+		<property name="igmPos" type="java.lang.Long">
+			<column name="igm_pos" />
+		</property>
+		<property name="igm" type="java.lang.Long">
+			<column name="igm" />
+		</property>
+		<property name="ns1Pos" type="java.lang.Long">
+			<column name="ns1_pos" />
+		</property>
+		<property name="ns1" type="java.lang.Long">
+			<column name="ns1" />
+		</property>
+	</class>
+</hibernate-mapping>

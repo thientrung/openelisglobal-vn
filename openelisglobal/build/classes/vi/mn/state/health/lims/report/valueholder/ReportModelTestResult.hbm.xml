@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class
+		name="vi.mn.state.health.lims.report.valueholder.ReportModelTestResult"
+		table="view_test_result">
+		<id name="stt" type="java.lang.Integer">
+			<column name="stt" />
+		</id>
+		<property name="accessionNumber" type="java.lang.String">
+			<column name="accession_number" />
+		</property>
+		<property name="collectionDate" type="java.sql.Timestamp">
+			<column name="collection_date" />
+		</property>
+		<property name="receivedDate" type="java.sql.Timestamp">
+			<column name="received_date" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="sampleCondition" type="java.lang.String">
+			<column name="sample_condition" />
+		</property>
+		<property name="firstName" type="java.lang.String">
+			<column name="first_name" />
+		</property>
+		<property name="birthDate" type="java.sql.Timestamp">
+			<column name="birth_date" />
+		</property>
+		<property name="age"
+			type="java.lang.String">
+			<column name="age" />
+		</property>
+		<property name="gender" type="java.lang.String">
+			<column name="gender" />
+		</property>
+		<property name="address" type="java.lang.String">
+			<column name="address" />
+		</property>
+		<property name="department" type="java.lang.String">
+			<column name="department" />
+		</property>
+		<property name="patientDiagnosis" type="java.lang.String">
+			<column name="patient_diagnosis" />
+		</property>
+		<property name="patientBedNumber" type="java.lang.String">
+			<column name="patient_bed_number" />
+		</property>
+		<property name="patientRoomNumber" type="java.lang.String">
+			<column name="patient_room_number" />
+		</property>
+		<property name="externalId" type="java.lang.String">
+			<column name="external_id" />
+		</property>
+		<property name="patientType" type="java.lang.String">
+			<column name="patient_type" />
+		</property>
+		<property name="paymentType" type="java.lang.String">
+			<column name="payment_type" />
+		</property>
+		<property name="number1" type="java.lang.String">
+			<column name="number1" />
+		</property>
+		<property name="number2" type="java.lang.String">
+			<column name="number2" />
+		</property>
+		<property name="chartNumber" type="java.lang.String">
+			<column name="chart_number" />
+		</property>
+		<property name="emergency" type="java.lang.String">
+			<column name="emergency" />
+		</property>
+		<property name="testId" type="java.lang.Integer">
+			<column name="test_id" />
+		</property>
+		<property name="testName" type="java.lang.String">
+			<column name="test_name" />
+		</property>
+		<property name="testDescription" type="java.lang.String">
+			<column name="test_description" />
+		</property>
+		<property name="unit" type="java.lang.String">
+			<column name="unit" />
+		</property>
+		<property name="testSectionDescription" type="java.lang.String">
+			<column name="test_section_description" />
+		</property>
+		<property name="testSectionId" type="java.lang.Integer">
+			<column name="test_section_id" />
+		</property>
+		<property name="result" type="java.lang.String">
+			<column name="result" />
+		</property>
+		<property name="resultType" type="java.lang.String">
+			<column name="result_type" />
+		</property>
+		<property name="projectId"
+			type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+			<column name="project_id" />
+		</property>
+		<property name="organizationName" type="java.lang.String">
+			<column name="organization_name" />
+		</property>
+		<property name="organizationLocalAbbrev" type="java.lang.String">
+			<column name="organization_local_abbrev" />
+		</property>
+		<property name="city" type="java.lang.String">
+			<column name="city" />
+		</property>
+		<property name="patientId" type="java.lang.Integer">
+			<column name="patient_id" />
+		</property>
+		<property name="organizationId" type="java.lang.Integer">
+			<column name="organization_id" />
+		</property>
+		<property name="resultDate" type="java.sql.Timestamp">
+			<column name="result_date" />
+		</property>
+		<property name="releasedDate" type="java.sql.Timestamp">
+			<column name="released_date" />
+		</property>
+		<property name="testResultId"
+			type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+			<column name="test_result_id" />
+		</property>
+		<property name="parentId"
+			type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+			<column name="parent_id" />
+		</property>
+		<property name="doctor" type="java.lang.String">
+			<column name="doctor" />
+		</property>
+		<property name="specimenCondition" type="java.lang.String">
+			<column name="specimen_condition" />
+		</property>
+		<property name="originalResult" type="java.lang.String">
+			<column name="original_result" />
+		</property>
+		<property name="dob" type="java.lang.String">
+			<column name="dob" />
+		</property>
+		      <property name="illnessDate" type="java.sql.Timestamp">
+            <column name="illness_date" length="6"/>
+        </property>
+	</class>
+</hibernate-mapping>

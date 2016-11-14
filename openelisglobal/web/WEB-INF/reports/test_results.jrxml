@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created using JasperAssistant (http://www.jasperassistant.com) -->
+<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+
+<jasperReport name="test_results" pageWidth="612" pageHeight="791" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="com.jasperassistant.designer.GridHeight" value="7"/>
+	<property name="com.jasperassistant.designer.GridWidth" value="7"/>
+	<property name="com.jasperassistant.designer.Rulers" value="true"/>
+	<property name="com.jasperassistant.designer.DataSource" value="spec_labdev"/>
+	<property name="com.jasperassistant.designer.SnapToGrid" value="true"/>
+	<property name="com.jasperassistant.designer.Margins" value="true"/>
+	<property name="com.jasperassistant.designer.Units" value="Inches"/>
+	<property name="com.jasperassistant.designer.Grid" value="true"/>
+	<property name="com.jasperassistant.designer.SnapToGuides" value="true"/>
+	<property name="com.jasperassistant.designer.HGuides" value="0,232,244,285,298"/>
+	<parameter name="accession_number" class="java.lang.String"/>
+	<parameter name="location" class="java.lang.String"/>
+	<parameter name="Analysis_Status_To_Include" class="java.lang.String"/>
+	<!--bugzilla 1993 NOTE: if this query changes check main_report.jrxml, result_value.jrxml, analysis_status.jrxml, Analysis.hbm.xml also -->
+	<queryString>
+		<![CDATA[select
+    test.id as testid,
+    test.description as testname,
+    anal.id as analysisid,
+    --BEGIN this case statement selecting into temporary sorting field called analysisstatus_sortingfield is ONLY for sorting to make "Testing Pending" drop to bottom
+    case when (select 
+                    count(*)
+                    
+                  from
+                      test_analyte_test_result   tatr
+                      
+                  where 
+                      testid = test.id and
+                      (testresultid, testanalyteid)  in (
+                  
+                                                      select                                         
+                                                          res.test_result_id as testresultid,
+                                                          ta.id as testanalyteid
+                                                          
+                                                      from
+                                                          test_analyte ta,
+                                                          analysis anal,
+                                                          sample_item sampitem,
+                                                          sample samp,    
+                                                          test test,
+                                                          result res
+                                                          
+                                                      where 
+					                                      ta.test_id = test.id and
+												          ta.analyte_id=res.analyte_id and  
+												          anal.id = res.analysis_id and
+												          anal.test_id = test.id and
+												          anal.sampitem_id = sampitem. id and
+												          sampitem.samp_id = samp.id 
+					                                      and  samp.accession_number = $P{accession_number}
+												          and  res.is_reportable = 'Y'
+												          and anal.is_reportable = 'Y'
+												          and anal.printed_date is null
+												          and anal.status in ($P!{Analysis_Status_To_Include})
+												          --bugzilla 2028 - there is corresponding sql in main_report.jrxml to make sure we exclude the samples for which tests qa events are not completed
+                                                          --isQaEventsCompleted is 'Y' or 'N'
+                                                          --------------if there are no qa events for this test then isQaEventsCompleted = 'Y'
+                                                          and 'Y' = case when (select count(*) from analysis_qaevent aq where aq.analysis_id = anal.id)= 0 then 'Y' 
+                                                                      --if there are no holdable qa events for this test then  isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --if there the holdable qa events for this test are completed (completed date is not null) then isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and aq.completed_date is null and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --else isQaEventsCompleted = 'N'
+                                                                      else 'N' 
+                                                                    end 
+                                                         --end bugzilla 2028
+                                                          
+             			       )
+
+  )= 0 then 'x' else ' ' end as analysisstatus_sortingfield
+  --END case statement selecting into sortingfield analysisstatus_sortingfield
+
+from
+    sample_item sampitem,
+    sample samp,
+    analysis anal,
+    test test
+
+where   
+    anal.test_id = test.id and
+    anal.sampitem_id = sampitem. id and
+    sampitem.samp_id = samp.id and   
+    samp.accession_number = $P{accession_number} and 
+    anal.is_reportable = 'Y' and
+    anal.printed_date is null and
+    --make sure each analysis selected has itself at least 1 reportable result (if in results completed status or in released)
+    --                                         or at least 1 reportable analyte (if in test assigned status)
+   (
+   ( -- if test is in results completed or released status then report released test and report results completed test if at least 1 reportable result
+    (select count(*) 
+                  from
+                      test_analyte_test_result   tatr
+                      
+                  where 
+                      testid = test.id and
+                      (testresultid, testanalyteid)  in (
+                  
+                                                      select                                         
+                                                          res.test_result_id as testresultid,
+                                                          ta.id as testanalyteid
+                                                          
+                                                      from
+                                                          test_analyte ta,
+                                                          analysis anal,
+                                                          sample_item sampitem,
+                                                          sample samp,    
+                                                          test test,
+                                                          result res
+                                                          
+                                                      where 
+					                                      ta.test_id = test.id and
+												          ta.analyte_id=res.analyte_id and  
+												          anal.id = res.analysis_id and
+												          anal.test_id = test.id and
+												          anal.sampitem_id = sampitem. id and
+												          sampitem.samp_id = samp.id 
+					                                      and samp.accession_number = $P{accession_number}
+												          and res.is_reportable = 'Y'
+												          and anal.is_reportable = 'Y'
+												          and anal.printed_date is null
+												          and anal.status in (3, 4)
+												          --bugzilla 2028 - there is corresponding sql in main_report.jrxml to make sure we exclude the samples for which tests qa events are not completed
+                                                          --isQaEventsCompleted is 'Y' or 'N'
+                                                          --------------if there are no qa events for this test then isQaEventsCompleted = 'Y'
+                                                          and 'Y' = case when (select count(*) from analysis_qaevent aq where aq.analysis_id = anal.id)= 0 then 'Y' 
+                                                                      --if there are no holdable qa events for this test then  isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --if there the holdable qa events for this test are completed (completed date is not null) then isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and aq.completed_date is null and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --else isQaEventsCompleted = 'N'
+                                                                      else 'N' 
+                                                                    end 
+                                                         --end bugzilla 2028
+                                                          
+             			       )
+
+   ) > 0
+   ) OR ( -- if test assigned status then report as Test Pending if at least one reportable analyte
+       (select count(*) 
+                  from
+                      test_analyte   t_a
+                      
+                  where 
+                      t_a.test_id = test.id and
+                      (t_a.id)  in (
+                  
+                                                      select                                         
+                                                          ta.id
+                                                          
+                                                      from
+                                                          test_analyte ta,
+                                                          analysis anal,
+                                                          sample_item sampitem,
+                                                          sample samp,    
+                                                          test test
+                                                                                                                  
+                                                      where 
+                                                          samp.accession_number = $P{accession_number} and
+                                                          sampitem.samp_id = samp.id and
+                                                          anal.sampitem_id = sampitem. id and
+                                                          anal.test_id = test.id and
+					                                      ta.test_id = test.id and
+												          ta.is_reportable = 'Y' and
+												          anal.is_reportable = 'Y' and
+												          anal.printed_date is null and
+												          anal.status = 1
+                                                          
+             			       )
+
+   ) > 0
+   ) 
+   ) and
+   --make sure that this sample has at least 1 released analysis that has a result that is going to print
+   (select 
+                    count(*)
+                    
+                  from
+                      test_analyte_test_result   tatr
+                      
+                  where 
+                      --here we are looking for all tests for this sample
+                      --testid = test.id and
+                      (testresultid, testanalyteid)  in (
+                  
+                                                      select                                         
+                                                          res.test_result_id as testresultid,
+                                                          ta.id as testanalyteid
+                                                          
+                                                      from
+                                                          test_analyte ta,
+                                                          analysis anal,
+                                                          sample_item sampitem,
+                                                          sample samp,    
+                                                          test test,
+                                                          result res
+                                                          
+                                                      where 
+					                                      ta.test_id = test.id and
+												          ta.analyte_id=res.analyte_id and  
+												          anal.id = res.analysis_id and
+												          anal.test_id = test.id and
+												          anal.sampitem_id = sampitem. id and
+												          sampitem.samp_id = samp.id 
+												          and samp.accession_number = $P{accession_number}
+												          and res.is_reportable = 'Y'
+												          and anal.is_reportable = 'Y'
+												          and anal.printed_date is null
+												          and anal.status in ($P!{Analysis_Status_To_Include})
+ 												          --bugzilla 2028 - there is corresponding sql in main_report.jrxml to make sure we exclude the samples for which tests qa events are not completed
+                                                          --isQaEventsCompleted is 'Y' or 'N'
+                                                          --------------if there are no qa events for this test then isQaEventsCompleted = 'Y'
+                                                          and 'Y' = case when (select count(*) from analysis_qaevent aq where aq.analysis_id = anal.id)= 0 then 'Y' 
+                                                                      --if there are no holdable qa events for this test then  isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --if there the holdable qa events for this test are completed (completed date is not null) then isQaEventsCompleted = 'Y'
+                                                                      when (select count(*) from analysis_qaevent aq, qa_event q where aq.analysis_id = anal.id and q.id = aq.qa_event_id and aq.completed_date is null and q.is_holdable = 'Y') = 0 then 'Y' 
+                                                                      --else isQaEventsCompleted = 'N'
+                                                                      else 'N' 
+                                                                    end 
+                                                         --end bugzilla 2028
+             			       )
+
+  ) > 0
+  
+    
+order by 
+    --this is newly added sorting logic to make "Testing Pending" drop to bottom of list of tests
+    analysisstatus_sortingfield asc,
+    test.description asc]]>
+	</queryString>
+	<field name="TESTNAME" class="java.lang.String"/>
+	<field name="TESTID" class="java.lang.String"/>
+	<field name="ANALYSISID" class="java.lang.String"/>
+	<group name="Group_1" isStartNewPage="true"/>
+	<pageHeader>
+		<band height="15">
+			<textField>
+				<reportElement positionType="Float" mode="Opaque" x="0" y="-1" width="190" height="16" backcolor="#C0C0C0"/>
+				<box padding="0" topBorder="Thin" leftBorder="Thin" bottomBorder="None" rightBorder="Thin"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$R{label.jasper.testname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" mode="Opaque" x="189" y="-1" width="267" height="16" backcolor="#C0C0C0"/>
+				<box padding="0" topBorder="Thin" leftBorder="None" bottomBorder="None" rightBorder="Thin"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$R{label.jasper.result}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" mode="Opaque" x="455" y="-1" width="99" height="16" backcolor="#C0C0C0"/>
+				<box padding="0" topBorder="Thin" leftBorder="None" bottomBorder="None" rightBorder="Thin"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="11" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$R{label.jasper.resultdate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="43" isSplitAllowed="false">
+			<subreport isUsingCache="false">
+				<reportElement stretchType="RelativeToTallestObject" x="192" y="16" width="257" height="27"/>
+				<parametersMapExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></parametersMapExpression>
+				<subreportParameter name="CURRENT_TESTID">
+					<subreportParameterExpression><![CDATA[$F{TESTID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="location">
+					<subreportParameterExpression><![CDATA[$P{location}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Analysis_Status_To_Include">
+					<subreportParameterExpression><![CDATA[$P{Analysis_Status_To_Include}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{location}+"result_value.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="3" y="2" width="187" height="41"/>
+				<box padding="0" topBorder="None" leftBorder="None" bottomBorder="None" rightBorder="None"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Arial" size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TESTNAME}]]></textFieldExpression>
+			</textField>
+			<subreport isUsingCache="false">
+				<reportElement x="192" y="2" width="257" height="15"/>
+				<parametersMapExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></parametersMapExpression>
+				<subreportParameter name="CURRENT_TESTID">
+					<subreportParameterExpression><![CDATA[$F{TESTID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="location">
+					<subreportParameterExpression><![CDATA[$P{location}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CURRENT_ANALYSISID">
+					<subreportParameterExpression><![CDATA[$F{ANALYSISID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Analysis_Status_To_Include">
+					<subreportParameterExpression><![CDATA[$P{Analysis_Status_To_Include}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{location}+"analysis_status.jasper"]]></subreportExpression>
+			</subreport>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="455" y="-16" width="1" height="59"/>
+				<graphicElement pen="Thin"/>
+			</line>
+			<line>
+				<reportElement stretchType="RelativeToTallestObject" x="189" y="-16" width="1" height="59"/>
+				<graphicElement pen="Thin"/>
+			</line>
+			<rectangle>
+				<reportElement stretchType="RelativeToTallestObject" mode="Transparent" x="0" y="0" width="554" height="43"/>
+				<graphicElement pen="Thin"/>
+			</rectangle>
+		</band>
+	</detail>
+</jasperReport>

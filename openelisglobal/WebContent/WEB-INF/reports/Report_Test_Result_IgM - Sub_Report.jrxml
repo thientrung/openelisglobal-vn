@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Report_Test_Result" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.2100000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="286"/>
+	<subDataset name="dataset1"/>
+	<parameter name="leftHeaderImage" class="java.lang.String"/>
+	<parameter name="rightHeaderImage" class="java.lang.String"/>
+	<parameter name="procedure" class="java.lang.String"/>
+	<parameter name="leftFooter" class="java.lang.String"/>
+	<parameter name="accessionNumber" class="java.lang.String"/>
+	<parameter name="collectionDate" class="java.sql.Timestamp"/>
+	<parameter name="receivedDate" class="java.sql.Timestamp"/>
+	<parameter name="description" class="java.lang.String"/>
+	<parameter name="birthDate" class="java.lang.String"/>
+	<parameter name="age" class="java.lang.String"/>
+	<parameter name="address" class="java.lang.String"/>
+	<parameter name="department" class="java.lang.String"/>
+	<parameter name="patientDiagnosis" class="java.lang.String"/>
+	<parameter name="patientBedNumber" class="java.lang.String"/>
+	<parameter name="patientRoomNumber" class="java.lang.String"/>
+	<parameter name="externalId" class="java.lang.String"/>
+	<parameter name="patientType" class="java.lang.String"/>
+	<parameter name="paymentType" class="java.lang.String"/>
+	<parameter name="number1" class="java.lang.String"/>
+	<parameter name="number2" class="java.lang.String"/>
+	<parameter name="chartNumber" class="java.lang.String"/>
+	<parameter name="emergency" class="java.lang.String"/>
+	<parameter name="testId" class="java.lang.Integer"/>
+	<parameter name="testName" class="java.lang.String"/>
+	<parameter name="testDescription" class="java.lang.String"/>
+	<parameter name="unit" class="java.lang.String"/>
+	<parameter name="testSectionDescription" class="java.lang.String"/>
+	<parameter name="testSectionId" class="java.lang.String"/>
+	<parameter name="result" class="java.lang.String"/>
+	<parameter name="resultType" class="java.lang.String"/>
+	<parameter name="projectId" class="java.lang.String"/>
+	<parameter name="organizationName" class="java.lang.String"/>
+	<parameter name="organizationLocalAbbrev" class="java.lang.String"/>
+	<parameter name="patientId" class="java.lang.String"/>
+	<parameter name="gender" class="java.lang.String"/>
+	<parameter name="firstName" class="java.lang.String"/>
+	<parameter name="resultDate" class="java.sql.Timestamp"/>
+	<parameter name="testResultId" class="java.lang.String"/>
+	<parameter name="parentId" class="java.lang.String"/>
+	<parameter name="doctor" class="java.lang.String"/>
+	<parameter name="specimenCondition" class="java.lang.String"/>
+	<parameter name="originalResult" class="java.lang.String"/>
+	<parameter name="dob" class="java.lang.String"/>
+	<variable name="yes_no" class="java.lang.String">
+		<variableExpression><![CDATA[$P{result}.equals("Âm tính") ? "Không" : "Có"]]></variableExpression>
+	</variable>
+	<variable name="result1" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$P{testResultId} != null ? $P{result} : $V{result1}]]></variableExpression>
+	</variable>
+	<variable name="test_name" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$P{testId}.intValue() == 341 ? "MAC - ELISA" :
+$P{testId}.intValue() == 342 ? "IgG - ELISA" : ""]]></variableExpression>
+	</variable>
+	<variable name="do" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$P{resultType}.equals("A") && $P{originalResult} != null && $P{originalResult}.contains("/") ?
+
+$P{originalResult}.substring(0, $P{originalResult}.indexOf("/")) : $V{do}]]></variableExpression>
+	</variable>
+	<variable name="co" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$P{resultType}.equals("A") && $P{originalResult} != null && $P{originalResult}.contains("/") ?
+
+$P{originalResult}.substring($P{originalResult}.indexOf("/") + 1) : $V{co}]]></variableExpression>
+	</variable>
+	<group name="group_accession_number">
+		<groupExpression><![CDATA[$P{accessionNumber}]]></groupExpression>
+		<groupHeader>
+			<band height="353">
+				<staticText>
+					<reportElement x="170" y="101" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Mã số mẫu:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="319" y="314" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="309" y="333" width="245" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{specimenCondition} == null ? "Tốt" : $P{specimenCondition}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="246" y="238" width="308" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{doctor}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="171" y="314" width="103" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ trả KQ:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="216" y="200" width="43" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{age}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="245" y="257" width="310" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="170" y="180" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Họ và tên:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="319" y="276" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="245" y="121" width="309" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{chartNumber}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="171" y="295" width="103" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ nhận:]]></text>
+				</staticText>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="355" y="295" width="199" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{receivedDate}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="427" y="200" width="127" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{gender}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="170" y="219" width="46" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Địa chỉ:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="170" y="121" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Số bệnh án:]]></text>
+				</staticText>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="355" y="276" width="199" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{collectionDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="380" y="200" width="47" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<text><![CDATA[Giới:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="170" y="160" width="103" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Loại BP lúc nhận:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="285" y="314" width="34" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="171" y="333" width="138" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Tình trạng mẫu lúc nhận:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="285" y="276" width="34" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{collectionDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="170" y="141" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Số Labo:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="284" y="295" width="35" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{receivedDate}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="355" y="314" width="199" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="171" y="276" width="103" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ lấy mẫu:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="319" y="295" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="245" y="141" width="309" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{accessionNumber}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="273" y="160" width="281" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{description}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="170" y="200" width="46" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Tuổi:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="170" y="238" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[BS chỉ định:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="216" y="219" width="338" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{address}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="245" y="101" width="309" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{number1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="246" y="180" width="308" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{firstName}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="170" y="257" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="DejaVu Sans"/>
+					</textElement>
+					<text><![CDATA[Địa chỉ BS:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="259" y="200" width="121" height="20"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression class="java.lang.String"><![CDATA[$P{dob}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Prevent"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Prevent"/>
+	</title>
+	<pageFooter>
+		<band height="438">
+			<staticText>
+				<reportElement x="171" y="418" width="385" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[1/1]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="418" width="170" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{leftFooter}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="355" y="180" width="200" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[PXN. Virút Arbo]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="355" y="160" width="200" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["TP. HCM," + " ngày " + new java.util.Date().getDate()+ " tháng " + (new java.util.Date().getMonth() + 1) + " năm " + (new java.util.Date().getYear() + 1900)]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="120" width="60" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="10" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Kết luận:  ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="123" y="119" width="432" height="41"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="10" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + ($V{result1}.equals("Âm tính") ? "Không có" :
+ $V{result1}.equals("Dương tính") ? "Có" : "") + " " + $P{testDescription}.substring(10) + " trong mẫu bệnh phẩm được xét nghiệm"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="205" y="2" width="28" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="2" width="321" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{testDescription}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="22" width="142" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[  Phương pháp xét nghiệm]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="273" y="22" width="281" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{procedure}]]></textFieldExpression>
+			</textField>
+			<textField pattern="(dd-MM-yyyy)" isBlankWhenNull="true">
+				<reportElement x="233" y="82" width="321" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{resultDate}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="205" y="62" width="28" height="40"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="205" y="22" width="28" height="40"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="62" width="41" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$V{result1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="42" width="321" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Ngưỡng phát hiện (cut off): " + $V{co}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="42" width="142" height="20"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[  (Chỉ số tham chiếu)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="82" width="142" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[  (Ngày thực hiện)]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="274" y="62" width="280" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["(OD mẫu: " + $V{do} + ")"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="62" width="142" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[  Kết quả xét nghiệm]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="2" width="142" height="20"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[  Tên xét nghiệm]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="22" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$V{test_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

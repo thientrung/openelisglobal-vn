@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Report_Test_Result" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.2100000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="dataset1"/>
+	<parameter name="leftHeaderImage" class="java.lang.String"/>
+	<parameter name="rightHeaderImage" class="java.lang.String"/>
+	<parameter name="procedure" class="java.lang.String"/>
+	<parameter name="leftFooter" class="java.lang.String"/>
+	<field name="accessionNumber" class="java.lang.String"/>
+	<field name="collectionDate" class="java.sql.Timestamp"/>
+	<field name="receivedDate" class="java.sql.Timestamp"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="birthDate" class="java.lang.String"/>
+	<field name="age" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="department" class="java.lang.String"/>
+	<field name="patientDiagnosis" class="java.lang.String"/>
+	<field name="patientBedNumber" class="java.lang.String"/>
+	<field name="patientRoomNumber" class="java.lang.String"/>
+	<field name="externalId" class="java.lang.String"/>
+	<field name="patientType" class="java.lang.String"/>
+	<field name="paymentType" class="java.lang.String"/>
+	<field name="number1" class="java.lang.String"/>
+	<field name="number2" class="java.lang.String"/>
+	<field name="chartNumber" class="java.lang.String"/>
+	<field name="emergency" class="java.lang.String"/>
+	<field name="testId" class="java.lang.Integer"/>
+	<field name="testName" class="java.lang.String"/>
+	<field name="testDescription" class="java.lang.String"/>
+	<field name="unit" class="java.lang.String"/>
+	<field name="testSectionDescription" class="java.lang.String"/>
+	<field name="testSectionId" class="java.lang.Integer"/>
+	<field name="result" class="java.lang.String"/>
+	<field name="resultType" class="java.lang.String"/>
+	<field name="projectId" class="java.lang.Integer"/>
+	<field name="organizationName" class="java.lang.String"/>
+	<field name="organizationLocalAbbrev" class="java.lang.String"/>
+	<field name="patientId" class="java.lang.Integer"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="firstName" class="java.lang.String"/>
+	<field name="resultDate" class="java.sql.Timestamp"/>
+	<field name="testResultId" class="java.lang.String"/>
+	<field name="parentId" class="java.lang.String"/>
+	<field name="doctor" class="java.lang.String"/>
+	<field name="specimenCondition" class="java.lang.String"/>
+	<field name="originalResult" class="java.lang.String"/>
+	<field name="dob" class="java.lang.String"/>
+	<variable name="yes_no" class="java.lang.String">
+		<variableExpression><![CDATA[$F{result}.equals("Âm tính") ? "Không" : "Có"]]></variableExpression>
+	</variable>
+	<variable name="result1" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$F{testResultId} != null ? $F{result} : $V{result1}]]></variableExpression>
+	</variable>
+	<variable name="test_name" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[($F{testId}.intValue() == 341 || $F{testId}.intValue() == 344) ? "MAC - ELISA" :
+$F{testId}.intValue() == 342 ? "IgG - ELISA" :
+""]]></variableExpression>
+	</variable>
+	<variable name="do" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$F{resultType}.equals("A") && $F{originalResult} != null && $F{originalResult}.contains("/") ?
+
+$F{originalResult}.substring(0, $F{originalResult}.indexOf("/")) : $V{do}]]></variableExpression>
+	</variable>
+	<variable name="co" class="java.lang.String" resetType="Group" resetGroup="group_accession_number">
+		<variableExpression><![CDATA[$F{resultType}.equals("A") && $F{originalResult} != null && $F{originalResult}.contains("/") ?
+
+$F{originalResult}.substring($F{originalResult}.indexOf("/") + 1) : $V{co}]]></variableExpression>
+	</variable>
+	<group name="group_accession_number" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{accessionNumber}]]></groupExpression>
+		<groupHeader>
+			<band height="364">
+				<staticText>
+					<reportElement x="190" y="99" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Mã số mẫu:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="321" y="319" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="305" y="339" width="250" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{specimenCondition} == null ? "Tốt" : $F{specimenCondition}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="266" y="239" width="289" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{doctor}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="319" width="95" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ trả KQ:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="236" y="199" width="43" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{age}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="266" y="259" width="289" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="190" y="179" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Họ và tên:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="321" y="279" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="265" y="119" width="290" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{chartNumber}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="299" width="95" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ nhận:]]></text>
+				</staticText>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="357" y="299" width="198" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{receivedDate}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="393" y="199" width="162" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{gender}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="190" y="219" width="46" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Địa chỉ:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="190" y="119" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Số bệnh án:]]></text>
+				</staticText>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="357" y="279" width="198" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{collectionDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="346" y="199" width="47" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Giới:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="190" y="159" width="89" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Loại BP lúc nhận:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="286" y="319" width="35" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="339" width="114" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Tình trạng mẫu lúc nhận:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="286" y="279" width="35" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{collectionDate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="190" y="139" width="75" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Số Labo:]]></text>
+				</staticText>
+				<textField pattern="HH:mm" isBlankWhenNull="true">
+					<reportElement x="286" y="299" width="35" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{receivedDate}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd-MM-yyyy" isBlankWhenNull="true">
+					<reportElement x="357" y="319" width="198" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="191" y="279" width="95" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Ngày, giờ lấy mẫu:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="321" y="299" width="36" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[, ngày]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="265" y="139" width="290" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{accessionNumber}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="279" y="159" width="276" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{description}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="190" y="199" width="46" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Tuổi:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="190" y="239" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[BS chỉ định:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="236" y="219" width="319" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{address}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="265" y="99" width="290" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{number1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="265" y="179" width="290" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="10" isBold="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{firstName}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="190" y="259" width="76" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Địa chỉ BS:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="279" y="199" width="67" height="20"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{dob}]]></textFieldExpression>
+				</textField>
+				<image>
+					<reportElement x="2" y="-20" width="554" height="139"/>
+					<imageExpression class="java.lang.String"><![CDATA[$P{rightHeaderImage}]]></imageExpression>
+				</image>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Prevent"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Prevent"/>
+	</title>
+	<pageFooter>
+		<band height="438">
+			<staticText>
+				<reportElement x="171" y="418" width="385" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[1/1]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="418" width="170" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" isBold="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{leftFooter}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="355" y="180" width="200" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PXN. Virút Arbo]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="355" y="160" width="200" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="10" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["TP. HCM," + " ngày " + new java.util.Date().getDate()+ " tháng " + (new java.util.Date().getMonth() + 1) + " năm " + (new java.util.Date().getYear() + 1900)]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="120" width="60" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Kết luận:  ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="123" y="119" width="432" height="41"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="Times New Roman" size="10" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + ($V{result1}.equals("Âm tính") ? "Không có" :
+ $V{result1}.equals("Dương tính") ? "Có" : "") + " " + $F{testDescription}.substring(10) + " trong mẫu bệnh phẩm được xét nghiệm"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="187" y="2" width="368" height="20"/>
+				<box leftPadding="10">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{testDescription}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="22" width="124" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[  Phương pháp xét nghiệm]]></text>
+			</staticText>
+			<textField pattern="(dd-MM-yyyy)" isBlankWhenNull="true">
+				<reportElement x="187" y="82" width="368" height="20"/>
+				<box leftPadding="10">
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{resultDate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="187" y="62" width="368" height="20"/>
+				<box leftPadding="10">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" isBold="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$V{result1} + " (DO mẫu: " + $V{do} + ")"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="187" y="42" width="368" height="20"/>
+				<box leftPadding="10">
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="Times New Roman" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Ngưỡng phát hiện (cut off): " + $V{co}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="42" width="124" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[  (Chỉ số tham chiếu)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="82" width="124" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[  (Ngày thực hiện)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="62" width="124" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[  Kết quả xét nghiệm]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="2" width="124" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true" isItalic="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[  Tên xét nghiệm]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="187" y="22" width="368" height="20"/>
+				<box leftPadding="10">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" isBold="true" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$V{test_name} + " " + $P{procedure}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

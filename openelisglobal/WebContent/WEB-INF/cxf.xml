@@ -1,0 +1,21 @@
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+    xsi:schemaLocation=" http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd 
+        http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd"> 
+<!--Here we are adding jacksonJsonProvider -->
+    <bean id="jacksonJsonProvider" class="org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider " />
+    
+    <!-- Begin: Etor WS -->
+    <jaxrs:server id="base" address="/etor">
+        <jaxrs:serviceBeans>
+            <ref bean="dataExchangeService" />
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <ref bean="jacksonJsonProvider" />
+        </jaxrs:providers>
+    </jaxrs:server>
+    <bean id="dataExchangeService" class="vi.mn.state.health.lims.dataexchange.webservice.impl.DataExchangeWSImpl" />
+    <!-- End: Etor WS -->
+    
+</beans>

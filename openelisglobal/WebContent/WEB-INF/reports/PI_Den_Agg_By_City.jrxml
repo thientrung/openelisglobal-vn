@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PI_Den_Agg_By_City" pageWidth="690" pageHeight="842" columnWidth="690" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="month" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="year" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="projectDengue" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT temp.city,
+    sum(temp.d1) AS d1,
+    sum(temp.d2) AS d2,
+    sum(temp.d3) AS d3,
+    sum(temp.d4) AS d4,
+    sum(temp.isolation) AS isolation,
+    sum(temp.igm_pos) AS igm_pos,
+    sum(temp.igm) AS igm,
+    sum(temp.ns1_pos) AS ns1_pos,
+    sum(temp.ns1) AS ns1
+   FROM (
+SELECT DISTINCT date_part('year'::text, s.received_date) AS year,
+            date_part('month'::text, s.received_date) AS month,
+                CASE
+                    WHEN city_value.dict_entry IS NULL THEN 'Không rõ'::character varying
+                    ELSE city_value.dict_entry
+                END AS city,
+                CASE
+                    WHEN district_value.dict_entry IS NULL THEN 'Không rõ'::text
+                    ELSE district_value.dict_entry::text
+                END AS district,
+            s.accession_number,
+            s.received_date,
+            t.id AS test_id,
+            t.name AS test_name,
+            t.description AS test_description,
+                CASE
+                    WHEN r.result_type::text = 'D'::text THEN ( SELECT dor.dict_entry
+                       FROM dictionary dor
+                      WHERE dor.id = r.value::numeric)
+                    ELSE r.value
+                END AS result,
+            r.value AS original_result,
+            org.id AS organization_id,
+            org.name AS organization_name,
+            r.lastupdated AS result_date,
+                CASE
+                    WHEN a.test_id = 337::numeric AND r.value::text = '2288'::text THEN 1
+                    ELSE 0
+                END AS d1,
+                CASE
+                    WHEN a.test_id = 337::numeric AND r.value::text = '2289'::text THEN 1
+                    ELSE 0
+                END AS d2,
+                CASE
+                    WHEN a.test_id = 337::numeric AND r.value::text = '2290'::text THEN 1
+                    ELSE 0
+                END AS d3,
+                CASE
+                    WHEN a.test_id = 337::numeric AND r.value::text = '2291'::text THEN 1
+                    ELSE 0
+                END AS d4,
+                CASE
+                    WHEN a.test_id = 337::numeric THEN 1
+                    ELSE 0
+                END AS isolation,
+                CASE
+                    WHEN a.test_id = 341::numeric AND r.value::text = '2098'::text THEN 1
+                    ELSE 0
+                END AS igm_pos,
+                CASE
+                    WHEN a.test_id = 341::numeric THEN 1
+                    ELSE 0
+                END AS igm,
+                CASE
+                    WHEN a.test_id = 351::numeric AND r.value::text = '2098'::text THEN 1
+                    ELSE 0
+                END AS ns1_pos,
+                CASE
+                    WHEN a.test_id = 351::numeric THEN 1
+                    ELSE 0
+                END AS ns1
+           FROM sample s
+             JOIN sample_requester sr ON sr.sample_id = s.id AND sr.requester_type_id = 1::numeric
+             JOIN organization org ON sr.requester_id = org.id
+             JOIN sample_item si ON si.samp_id = s.id
+             JOIN type_of_sample tos ON si.typeosamp_id = tos.id
+             JOIN sample_human sh ON sh.samp_id = s.id
+             JOIN patient p ON sh.patient_id = p.id
+             JOIN person per ON p.person_id = per.id
+             LEFT JOIN person_address district ON district.person_id = per.id AND district.address_part_id = 7::numeric
+             LEFT JOIN dictionary district_value ON district.value::text = district_value.id::text
+             LEFT JOIN person_address city ON city.person_id = per.id AND city.address_part_id = 3::numeric
+             LEFT JOIN dictionary city_value ON city.value::text = city_value.id::text
+             JOIN analysis a ON a.sampitem_id = si.id
+             JOIN test t ON a.test_id = t.id
+             JOIN test_section ts ON t.test_section_id = ts.id
+             JOIN result r ON r.analysis_id = a.id
+             LEFT JOIN dictionary dict ON r.value::text = dict.id::text
+LEFT JOIN sample_projects sp ON s.id = sp.samp_id
+     LEFT JOIN project prj ON sp.proj_id = prj.id
+	WHERE r.value is not null AND r.value != '' AND r.value != '0'
+		AND t.id in (337,341)
+		AND r.test_result_id is not null
+		AND CASE WHEN $P{month} is null then 1 =1 ELSE EXTRACT(MONTH from s.received_date)::text = $P{month} END
+		AND EXTRACT(YEAR from s.received_date)::text = $P{year}
+		AND CASE WHEN $P{projectDengue} is null or $P{projectDengue} = '' THEN 1 = 1
+		WHEN $P{projectDengue} = 'MTQG' THEN prj.id in (2,3,4)
+		WHEN $P{projectDengue} = 'BCTX' THEN prj.id in (5,6) END) as temp
+GROUP BY temp.city
+ORDER BY temp.city;]]>
+	</queryString>
+	<field name="city" class="java.lang.String"/>
+	<field name="d1" class="java.lang.Long"/>
+	<field name="d2" class="java.lang.Long"/>
+	<field name="d3" class="java.lang.Long"/>
+	<field name="d4" class="java.lang.Long"/>
+	<field name="isolation" class="java.lang.Long"/>
+	<field name="igm_pos" class="java.lang.Long"/>
+	<field name="igm" class="java.lang.Long"/>
+	<field name="ns1_pos" class="java.lang.Long"/>
+	<field name="ns1" class="java.lang.Long"/>
+	<variable name="variable1" class="java.lang.String"/>
+	<variable name="variable2" class="java.lang.String"/>
+	<variable name="d1_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{d1}]]></variableExpression>
+	</variable>
+	<variable name="d2_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{d2}]]></variableExpression>
+	</variable>
+	<variable name="d3_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{d3}]]></variableExpression>
+	</variable>
+	<variable name="d4_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{d4}]]></variableExpression>
+	</variable>
+	<variable name="isolation_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{isolation}]]></variableExpression>
+	</variable>
+	<variable name="igm_pos_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{igm_pos}]]></variableExpression>
+	</variable>
+	<variable name="igm_sum" class="java.lang.Long" calculation="Sum">
+		<variableExpression><![CDATA[$F{igm}]]></variableExpression>
+	</variable>
+	<variable name="isolation_pos_sum" class="java.lang.Long">
+		<variableExpression><![CDATA[$V{d1_sum}.longValue() + $V{d2_sum}.longValue() + $V{d3_sum}.longValue() + $V{d4_sum}.longValue()]]></variableExpression>
+	</variable>
+	<variable name="isolation_pos_ratio" class="java.lang.Long" resetType="None">
+		<variableExpression><![CDATA[$F{isolation} != 0 ? ($F{d1} + $F{d2} + $F{d3} + $F{d4}) / $F{isolation}* 100 : 0]]></variableExpression>
+	</variable>
+	<variable name="variable4" class="java.lang.String"/>
+	<variable name="variable5" class="java.lang.String"/>
+	<variable name="variable6" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="110" splitType="Stretch">
+			<staticText>
+				<reportElement x="30" y="55" width="130" height="55"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Địa phương]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="160" y="55" width="215" height="35"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Số mẫu phân lập vi rút]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="160" y="90" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[D1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="90" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[D2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="240" y="90" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[D3]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="280" y="90" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[D4]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="500" y="90" width="70" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Số XN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="90" width="55" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Tỉ lệ %]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="430" y="55" width="140" height="35"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Số mẫu huyết thanh làm Mac-ELISA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="430" y="90" width="70" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Số XN(+)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="570" y="90" width="55" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Tỉ lệ %]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="320" y="90" width="55" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[TS mẫu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="570" y="55" width="55" height="35"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="55" width="55" height="35"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="625" height="35"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[GIÁM SÁT VIRÚT  VÀ HUYẾT THANH NĂM 2016]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="35" width="625" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="false" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Báo cáo năm]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="55" width="30" height="55"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="30" y="0" width="130" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{city}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="160" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{d1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="200" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{d2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="240" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{d3}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="280" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{d4}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="320" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{isolation}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="430" y="0" width="70" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{igm_pos}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="500" y="0" width="70" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{igm}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="375" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$F{isolation} != 0 ? ($F{d1} + $F{d2} + $F{d3} + $F{d4})/$F{isolation}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="570" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$F{igm} == 0 ? 0 : $F{igm_pos}/$F{igm}.doubleValue() * 100]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="30" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{COLUMN_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement x="30" y="0" width="130" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Khu vực]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="20" width="130" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[%(+)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="30" y="40" width="130" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true" pdfFontName="Times" pdfEncoding="Identity-V" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[%/TS(+)]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="160" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{d1_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="200" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{d2_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="240" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{d3_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="280" y="0" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{d4_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="320" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{isolation_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="70" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{igm_pos_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="500" y="0" width="70" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$V{igm_sum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="160" y="40" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_pos_sum} != 0 ?
+$V{d1_sum}/$V{isolation_pos_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="375" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_sum} != 0 ? $V{isolation_pos_sum}/$V{isolation_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="570" y="0" width="55" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{igm_sum} == 0 ? 0 : $V{igm_pos_sum}/$V{igm_sum}.doubleValue() * 100]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="200" y="40" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_pos_sum} != 0 ? $V{d2_sum} / $V{isolation_pos_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="240" y="40" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_pos_sum} != 0 ? $V{d3_sum} / $V{isolation_pos_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="280" y="40" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_pos_sum} != 0 ? $V{d4_sum} / $V{isolation_pos_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="240" y="20" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_sum} != 0 ? $V{d3_sum} / $V{isolation_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="160" y="20" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_sum} != 0 ? $V{d1_sum}/$V{isolation_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="280" y="20" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_sum} != 0 ? $V{d4_sum} / $V{isolation_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="200" y="20" width="40" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{isolation_sum} != 0 ? $V{d2_sum} / $V{isolation_sum}.doubleValue() * 100 : 0]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="20" width="70" height="20" isPrintInFirstWholeBand="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" pdfFontName="Times" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{igm_sum} == 0 ? 0 : $V{igm_pos_sum}/$V{igm_sum}.doubleValue() * 100]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

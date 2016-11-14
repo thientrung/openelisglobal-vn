@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report1" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ea7db5bf-b28b-413d-8d07-7553a1f961fd">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement x="190" y="0" width="178" height="35" backcolor="#FFFFFF" uuid="fc3ee884-b086-4878-96f7-da8ce2519430"/>
+				<textElement textAlignment="Justified">
+					<font fontName="Arial" size="26" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Report Action]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement mode="Opaque" x="416" y="0" width="100" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="0dac1b63-bba6-4dac-8975-2e9b26035942"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[gyhfvg]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="34" y="0" width="61" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="4a1ac5a9-8b46-4610-8896-cefaa207d10f"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="95" y="0" width="174" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="a0289792-3a00-41fc-b036-a2bdde01278d"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[S\u1ED1 Hi\u1EC7u H\u00E0nh \u0110\u1ED9ng]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="269" y="0" width="147" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="d51a33be-c9b8-46f8-a1c2-a3ac2db0dfe0"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[mo ta]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="34" y="0" width="61" height="20" backcolor="#FFFFFF" uuid="d61800bd-ba6b-4052-b073-5a185852f8e2"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="95" y="0" width="174" height="20" backcolor="#FFFFFF" uuid="79321a18-dd6a-4dba-9bcc-c74e67756166"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="269" y="0" width="147" height="20" backcolor="#FFFFFF" uuid="63c0cabf-f6dc-4a4f-9ae2-07b2355a0b46"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[3]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="416" y="0" width="100" height="20" backcolor="#FFFFFF" uuid="47bf9eb9-40cb-461e-b6f7-371d2dab2c48"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[6]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<summary>
+		<band height="41" splitType="Stretch">
+			<staticText>
+				<reportElement x="349" y="0" width="67" height="20" backcolor="#FFFFFF" uuid="cd689216-4230-4c7e-9896-483064f622a5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[dsadas]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="416" y="0" width="100" height="20" backcolor="#FFFFFF" uuid="ec501c50-a207-401f-bf73-2deece890ac1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="Arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

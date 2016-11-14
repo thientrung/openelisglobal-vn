@@ -1,0 +1,143 @@
+<project name="Struts LIMS" default="main" basedir=".">
+
+<property environment="env"/>
+<property file="./build.properties"/>
+
+<property name="tomcat.dir"       value="${tomcat.home}"/>
+<property name="name"           value="struts-lims"       />
+<property name="lib.dir"        value="./web/WEB-INF/lib"    />
+<!--property name="jndi.jar"       value="${oc4j.dir}/jndi.jar" />
+<property name="oc4j.jar"       value="${oc4j.dir}/oc4j.jar" />
+<property name="jazn.jar"       value="${oc4j.dir}/jazn.jar" />
+<property name="servlet.jar"    value="${oc4j.dir}/lib/servlet.jar"/>
+<property name="jaas.jar"       value="${oc4j.dir}/lib/jaas.jar" />
+<property name="jsp.jar"        value="${oc4j.dir}/lib/ojsp.jar"/-->
+<property name="deploy.dir" 	value="${tomcat.home}"/>
+<property name="build.compiler" value="modern"/>
+<property name="build.home"     value="./web/WEB-INF" />
+<property name="build.dir" 		value="./web/WEB-INF/classes" />
+<property name="src.dir" 		value="./src"/>
+<property name="war.file" 		value="struts-lims"/>
+<property name="openreports.war.file" 		value="openreports"/>
+<property name="war.file.name" 	value="${war.file}.war"/>
+<property name="openreports.war.file.name" 		value="openreports.war"/>
+<property name="ear.file" 		value="lims_openreportshead.ear"/>
+<property name="or_build_dir"   value="../openreports_1_18_0"/>
+<property name="reports.dir"   value="./web/WEB-INF/reports"/>
+	
+<path id="project.class.path">
+  <fileset dir="${lib.dir}">
+     <include name="**/*.jar"/>
+  </fileset>
+  <pathelement path="${src.dir}"/>
+  <pathelement path="${servlet.jar}"/>
+  <pathelement path="${jsp.jar}"/>
+</path>
+
+<target name="build-openreports">
+  <ant target="war" dir="${or_build_dir}" antfile="build_tomcat.xml" />
+  <echo>target build-openreports completed</echo>
+</target>
+
+<target name="clean">
+<delete dir="${build.dir}" includeEmptyDirs="true" />
+	<echo>target clean completed</echo>
+</target>
+	
+<target name="prep">
+<mkdir dir="${build.dir}"/>
+	<echo>target prep completed</echo>
+</target>
+	
+
+<target name="compile">
+   <javac srcdir="${src.dir}"
+        destdir="${build.dir}"
+        debug="on"
+        deprecation="on"
+        failonerror="false" >
+        <compilerarg value="-Xlint:checked"/>
+        <classpath refid="project.class.path"/>
+   </javac>
+   <echo>target compile completed</echo>
+</target>
+
+<target name="jar" depends="compile">
+
+   <jar destfile="${lib.dir}/lims.jar" basedir="${build.dir}" />
+	<echo>target jar completed</echo>
+
+</target>
+
+<target name="compile-reports">
+        <taskdef name="jrc" classname="net.sf.jasperreports.ant.JRAntCompileTask"> 
+           <classpath refid="project.class.path"/>
+        </taskdef>
+        <jrc destdir="${reports.dir}">
+          <src>
+            <fileset dir="${reports.dir}">
+              <include name="**/*.jrxml"/>
+            </fileset>
+          </src>
+         <classpath refid="project.class.path"/>
+        </jrc> 
+    	<echo>target lims compile-reports completed</echo>
+</target>	
+	
+<target name="cleanWebApp">
+<delete file="${deploy.dir}/${war.file.name}" />
+	<delete file="${deploy.dir}/${war.file}.ear" />
+<delete dir="${deploy.dir}/${war.file}" includeEmptyDirs="true" />
+	<echo>target cleanWebApp completed</echo>
+</target>
+	
+<target name="copyResources">
+	<copy todir="${build.dir}">
+    	<fileset dir="${src.dir}/java" includes="*.properties"/>
+		<fileset dir="${src.dir}" includes="**/*.xml"/>
+	</copy>
+	<!--this is for openreports - we need SystemConfiguration.properties a central file to denote locale-->
+	<copy file="${src.dir}/us/mn/state/health/lims/common/util/SystemConfiguration.properties" tofile="${build.dir}/us/mn/state/health/lims/common/util/SystemConfiguration.properties" />
+	<echo>target copyResources completed</echo>
+</target>
+
+
+<target name="war">
+<war warfile="${war.file.name}" webxml="./web/WEB-INF/web.xml">
+<fileset dir="./" includes="**/*.*" excludes="build.properties, application.xml, ${war.file}.ear, **/src/**, **/bin/**, build.xml, .classpath, .project, *.war, **/*.nbattrs, web.xml, **/web/**/*.*, **/project-files/**/*.*"/>
+<fileset  dir="./web" includes="**/pages/**/*.*" />
+<webinf dir="./web/WEB-INF" includes="**/*" excludes="web.xml, **/*.jar, **/*.class"/>
+<lib dir="./web/WEB-INF/lib"/>
+		<classes dir="${build.dir}" excludes="**/testcase/**" />
+<classes dir="${src.dir}">
+<include name="**/*.properties"/> 
+</classes>
+</war>
+	<echo>target war completed</echo>
+</target>
+
+<target name="ear" depends="deploy">
+    <ear destfile="${deploy.dir}/${ear.file}"
+         appxml="./application.xml">
+      <fileset dir="${deploy.dir}/" includes="${war.file.name},${openreports.war.file.name}"/>
+    </ear>	
+    <!--delete file="${deploy.dir}/${war.file.name}" />
+    <delete file="${deploy.dir}/${openreports.war.file.name}" /-->
+     <echo>target ear completed</echo>
+ </target>
+
+
+<target name="deploy" depends="war">
+<copy todir="${deploy.dir}">
+<fileset dir="./" includes="${war.file.name}"/>
+</copy>
+	<echo>target deploy completed</echo>
+</target>
+
+<!--<target name="main" depends="clean, cleanWebApp, prep, compile, compile-reports, copyResources,  jar, war, build-openreports, deploy, ear"/>-->
+<!--Tuyen: No need ear file-->
+<target name="main" depends="clean, cleanWebApp, prep, compile, copyResources,  jar, war, deploy"/>
+<!--for local compile not using openreports-->
+<!--target name="main" depends="clean, cleanWebApp, prep, compile, copyResources,  jar, war, deploy"/-->
+
+</project>

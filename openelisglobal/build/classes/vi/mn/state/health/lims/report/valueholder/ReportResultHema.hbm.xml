@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="vi.mn.state.health.lims.report.valueholder.ReportResultHema"
+		table="view_d2_hema" >
+		<id name="accessionNumber" type="java.lang.String">
+			<column name="accession_number" />
+		</id>
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+		<property name="gender" type="java.lang.String">
+			<column name="gender" />
+		</property>
+		<property name="dob" type="java.lang.Double">
+			<column name="dob" />
+		</property>
+		<property name="ageMale" type="java.lang.Double">
+			<column name="age_male" />
+		</property>
+		<property name="age" type="java.lang.Double">
+			<column name="age" />
+		</property>
+		<property name="monthBegin" type="java.lang.Double">
+			<column name="month_begin" />
+		</property>
+		<property name="monthEnd" type="java.lang.Double">
+			<column name="month_end" />
+		</property>
+		<property name="flag" type="java.lang.Integer">
+			<column name="flag" />
+		</property>
+		<property name="value" type="java.lang.String">
+			<column name="value" />
+		</property>
+		<property name="textValue" type="java.lang.String">
+			<column name="textvalue" />
+		</property>
+		<property name="birthYear" type="java.lang.Double">
+			<column name="birthyear" />
+		</property>
+		<property name="birthMonth" type="java.lang.Double">
+			<column name="birthMonth" />
+		</property>
+		<property name="ageOld" type="java.lang.String">
+			<column name="ageold" />
+		</property>
+		<property name="birthDay" type="java.lang.Double">
+			<column name="birthday" />
+		</property>
+		<property name="testId" type="java.lang.Double">
+			<column name="test_id" />
+		</property>
+		<property name="chartNumber" type="java.lang.String">
+			<column name="chart_number" />
+		</property>
+		<property name="receivedDate" type="java.sql.Timestamp">
+			<column name="received_date" />
+		</property>
+		<property name="collectionDate" type="java.sql.Timestamp">
+			<column name="collection_date" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="result" type="java.lang.String">
+			<column name="result" />
+		</property>
+		<property name="providerName" type="java.lang.String">
+			<column name="provider_name" />
+		</property>
+		<property name="typeOfSample" type="java.lang.String">
+			<column name="type_of_sample" />
+		</property>
+		<property name="externalId" type="java.lang.String">
+			<column name="external_id" />
+		</property>
+		<property name="lastUpdated" type="java.sql.Timestamp">
+			<column name="lastupdated" />
+		</property>
+		<property name="transmissionDate" type="java.sql.Timestamp">
+			<column name="transmission_date" />
+		</property>
+				<property name="enteredDate" type="java.sql.Timestamp">
+			<column name="entered_date" />
+		</property>
+		<property name="department" type="java.lang.String">
+			<column name="department" />
+		</property>
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,10 @@
+eclipse.preferences.version=1
+encoding//WebContent/scripts/testReflex.js=UTF-8
+encoding//src/us/mn/state/health/lims/common/action/IActionConstants.java=UTF-8
+encoding//src/us/mn/state/health/lims/common/provider/query/LabOrderSearchProvider.java=UTF-8
+encoding//src/us/mn/state/health/lims/patient/action/bean/PatientManagementInfo.java=UTF-8
+encoding//src/us/mn/state/health/lims/reports/action/implementation/PatientReport.java=UTF-8
+encoding//src/us/mn/state/health/lims/result/action/PatientResultsAction.java=UTF-8
+encoding//src/us/mn/state/health/lims/result/action/util/ResultsValidation.java=UTF-8
+encoding//src/vi/mn/state/health/lims/dataexchange/daoimpl/DataExchangeDAOImpl.java=UTF-8
+encoding//src/vi/mn/state/health/lims/dataexchangeimpl/DataExchangeImpl.java=UTF-8

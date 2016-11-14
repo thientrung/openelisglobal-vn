@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 14.1-b02 (Sun Microsystems Inc.)
+Built-By: Jaspersoft
+
+Name: net/sf/jasperreports/engine/
+Specification-Title: JasperReports Library
+Specification-Version: 3.7.2
+Specification-Vendor: Jaspersoft
+Implementation-Title: net.sf.jasperreports.engine
+Implementation-Version: 3.7.2
+Implementation-Vendor: Jaspersoft
+

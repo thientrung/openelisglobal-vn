@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="vi.mn.state.health.lims.etor.data.valueholder.EtorDataMapping" table="etor_data_mapping" optimistic-lock="version" dynamic-update="true">
+        <id name="etorId" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="etor_data_mapping_id" precision="10" scale="0" />
+            <generator class="sequence">
+               <param name="sequence">etor_data_mapping_seq</param>
+            </generator> 
+        </id>
+
+<!--         <property name="sampleId" type="java.lang.String">
+            <column name="" length="100" />
+        </property>
+         <property name="sampleItemId" type="java.lang.String">
+            <column name="" length="100" />
+        </property> -->
+         <property name="lisStatus" type="java.lang.Integer">
+            <column name="lis_status" />
+        </property>
+         <property name="etorStatus" type="java.lang.Integer">
+            <column name="etor_status" />
+        </property>
+        <property name="etorUserId" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="etor_user_id" precision="22" scale="0" />
+        </property>
+        <many-to-one name="sampleItem" class="us.mn.state.health.lims.sampleitem.valueholder.SampleItem" fetch="select">
+            <column name="samp_item_id" precision="10" scale="0" />
+        </many-to-one>
+        <many-to-one name="sample" class="us.mn.state.health.lims.sample.valueholder.Sample" fetch="select">
+            <column name="samp_id" precision="10" scale="0" />
+        </many-to-one>
+       
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,1902 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Lung_Hematology_Logbook" pageWidth="2450" pageHeight="28318" whenNoDataType="AllSectionsNoDetail" columnWidth="2450" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.3310000000000006"/>
+	<property name="ireport.x" value="166"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="vietnamese" isDefault="true" isBlankWhenNull="true" fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<parameter name="Start_Received_Date" class="java.util.Date">
+		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="End_Received_Date" class="java.util.Date">
+		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="password" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT distinct
+    -- Sample, Sample Item
+    s.accession_number, si.id as sampitem_id,
+    si.sort_order,
+    type_of_sample.id as type_of_sample_id,
+    type_of_sample.description as type_of_sample,
+    si.collection_date as collection_date,
+    s.received_date AS received_date,
+    -- Patient Info
+    pt.person_id, pt.id as patient_id, pt.external_id as external_id,
+    ps2.first_name AS doctor, ps.first_name AS name, pt.chart_number,
+    pt.entered_birth_date as birth_date, ps.age as age,
+
+    ps.street_address as street, ward.value AS ward, district_value.dict_entry AS district,
+    city_value.dict_entry AS city, pt.national_id,
+
+    CASE WHEN pt.gender='M' THEN 'Nam' WHEN pt.gender='F' THEN 'Nữ' ELSE 'Không xác định' END AS gender,
+    CASE WHEN pt.normal_emergency='Khẩn Cấp' THEN true ELSE false END AS emergency,
+
+    department_value.dict_entry AS department, payment.value AS payment,
+    diagnosis.value as diagnosis, bed.value as bed_number, room.value as room_number,
+    ptype.description as patient_type,
+
+    -- Test info
+    t.id AS test_id,
+    t.name AS test_name,
+    t.description AS test_description,
+    -- Test Section
+    ts.id as test_sect_id,
+    ts.id AS test_section_id,
+    ts.description AS test_section_description,
+    -- Analysis
+    note.text as note,
+    ana.completed_date,
+    -- Result info
+    rs.id,
+    result_value.id as dict_entry,
+    rs.analyte_id,
+    rs.result_type AS result_type,
+    rs.min_normal AS min,
+    rs.max_normal AS max,
+    uom.description AS unit,
+    CASE
+      WHEN rs.result_type::text = 'D'::text THEN result_value.dict_entry
+      ELSE rs.value
+      END AS result,
+    rs.lastupdated as last_updated,
+
+    CASE
+      WHEN ts.id in (10) or t.id in (19,20) THEN 0
+      WHEN ts.id in (6,8) THEN 1 ELSE 2
+      END as page_break,
+
+    CASE
+      WHEN t.description in ('WBC','RBC','PLT') THEN 1
+      WHEN t.id in (610,671) THEN 1 ELSE 0
+      END as test_bold,
+
+    CASE
+      WHEN t.test_section_id = 3 THEN 1 ELSE 0
+      END as report_type,
+
+    CASE
+      WHEN t.id IN (368,569,570,571,573,574,575) AND upper(rs.value) not in ('NEG','NORM') THEN true
+      WHEN (rs.value ~ '^[0-9]*.?[0-9]*$') AND position(',' in rs.value) = 0 AND rs.result_type <> 'D'
+        AND rs.max_normal <> 0 AND rs.min_normal <> 0
+        AND ((CAST(rs.value as numeric) < rs.min_normal) OR (CAST(rs.value as numeric) > rs.max_normal)) THEN true
+      WHEN t.id IN (887,888,890,891,1230) THEN true
+      WHEN rs.result_type = 'D' AND rs.value in ('4', '11','12','13','14') AND t.id != 26 THEN true
+      WHEN rs.result_type <> 'D' AND position('>' in rs.value) > 0 THEN true
+      WHEN rs.result_type <> 'D' AND position('<' in rs.value) > 0 THEN true
+      WHEN (rs.max_normal = 0 AND rs.min_normal = 0) THEN false
+      WHEN (rs.value ~ '^[0-9]*.?[0-9]*$') AND position(',' in rs.value) = 0 AND rs.result_type <> 'D'
+        AND rs.max_normal <> 0 AND rs.min_normal <> 0
+        AND CAST(rs.value as numeric) >= rs.min_normal
+        AND CAST(rs.value as numeric) <= rs.max_normal THEN false
+      END AS is_bold,
+
+    -- System User
+    su2.login_name as result_user,
+    su.login_name as patient_user
+
+FROM sample s
+  -- Patient Info
+  JOIN sample_human sh ON sh.samp_id = s.id
+  JOIN patient pt ON pt.id = sh.patient_id
+  JOIN person ps ON ps.id = pt.person_id
+  LEFT JOIN person_address ward ON ps.id = ward.person_id AND ward.address_part_id = 8
+  LEFT JOIN person_address district ON ps.id = district.person_id AND district.address_part_id = 7
+  JOIN observation_history oh ON pt.id = oh.patient_id and s.id = oh.sample_id
+  -- Doctor
+  JOIN sample_requester sq ON sq.sample_id = s.id AND sq.requester_type_id = 2
+  JOIN person ps2 ON ps2.id = sq.requester_id
+  -- Analysis
+  JOIN sample_item si ON si.samp_id = s.id
+  JOIN analysis ana ON ana.sampitem_id = si.id
+  -- Test/Test Section
+  JOIN test t ON t.id = ana.test_id
+  JOIN test_section ts ON ts.id = ana.test_sect_id
+  -- Result
+  JOIN result rs ON rs.analysis_id = ana.id
+  LEFT JOIN unit_of_measure uom ON t.uom_id = uom.id
+  -- Type of Sample Item
+  JOIN type_of_sample ON si.typeosamp_id = type_of_sample.id
+
+  -- Observation History and Dictionary
+  LEFT JOIN dictionary dict ON rs.value::text = dict.id::text
+  LEFT JOIN observation_history sample_condition ON s.id = sample_condition.sample_id AND sample_condition.observation_history_type_id = 1::numeric
+  LEFT JOIN dictionary condition_value ON sample_condition.value::text = condition_value.id::text
+    -- Payment
+    LEFT JOIN observation_history payment ON s.id = payment.sample_id AND payment.observation_history_type_id = 2::numeric
+    -- Department
+    LEFT JOIN observation_history department ON s.id = department.sample_id AND department.observation_history_type_id = 9::numeric
+    LEFT JOIN dictionary department_value ON department.value::text = department_value.id::text
+    -- City
+    LEFT JOIN dictionary city_value ON ps.city::text = city_value.id::text
+    -- District
+    LEFT JOIN dictionary district_value ON district.value = district_value.id::text
+    -- Diagnosis
+    LEFT JOIN observation_history diagnosis ON s.id = diagnosis.sample_id AND diagnosis.observation_history_type_id = 6::numeric
+    AND diagnosis.patient_id = pt.id
+    -- Result value
+    LEFT JOIN dictionary result_value ON rs.value::text = result_value.id::text
+    -- Urgency
+    LEFT JOIN observation_history urgency ON s.id = urgency.sample_id AND urgency.observation_history_type_id = 5::numeric
+    -- Bed
+    LEFT JOIN observation_history bed ON s.id = bed.sample_id AND bed.observation_history_type_id = 7::numeric
+    -- Room
+    LEFT JOIN observation_history room ON s.id = room.sample_id AND room.observation_history_type_id = 8::numeric
+
+    -- Age, Age Unit
+    LEFT JOIN observation_history age ON s.id = age.sample_id AND age.observation_history_type_id = 10::numeric
+    LEFT JOIN observation_history age_unit ON s.id = age_unit.sample_id AND age_unit.observation_history_type_id = 11::numeric
+    -- Patient Type
+    LEFT JOIN patient_patient_type ppt ON pt.id = ppt.patient_id
+    LEFT JOIN patient_type ptype ON ppt.patient_type_id = ptype.id
+    LEFT JOIN sample_projects sp ON sp.samp_id = s.id
+    LEFT JOIN project prj ON prj.id = sp.proj_id
+
+  LEFT JOIN note ON ana.id = reference_id
+  --LEFT JOIN result_signature rsign ON rs.id = rsign.result_id
+  LEFT JOIN history h2 ON ana.id = h2.reference_id AND h2.reference_table = 4 AND (h2.activity = 'I' OR h2.activity = 'U')
+  LEFT JOIN history h ON pt.id = h.reference_id AND h.reference_table = 15 AND h.activity = 'I'
+  LEFT JOIN system_user su ON h.sys_user_id = su.id
+  LEFT JOIN system_user su2 ON h2.sys_user_id = su2.id
+
+
+
+WHERE test_section_id IN (5,9,10)
+AND received_date::DATE >= $P{Start_Received_Date}
+AND received_date::DATE <= $P{End_Received_Date}
+AND $P{password} = 'hs2010'
+ORDER BY accession_number]]>
+	</queryString>
+	<field name="accession_number" class="java.lang.String"/>
+	<field name="sampitem_id" class="java.math.BigDecimal"/>
+	<field name="sort_order" class="java.math.BigDecimal"/>
+	<field name="type_of_sample_id" class="java.math.BigDecimal"/>
+	<field name="type_of_sample" class="java.lang.String"/>
+	<field name="collection_date" class="java.sql.Timestamp"/>
+	<field name="received_date" class="java.sql.Timestamp"/>
+	<field name="person_id" class="java.math.BigDecimal"/>
+	<field name="patient_id" class="java.math.BigDecimal"/>
+	<field name="external_id" class="java.lang.String"/>
+	<field name="doctor" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="chart_number" class="java.lang.String"/>
+	<field name="birth_date" class="java.lang.String"/>
+	<field name="age" class="java.lang.String"/>
+	<field name="street" class="java.lang.String"/>
+	<field name="ward" class="java.lang.String"/>
+	<field name="district" class="java.lang.String"/>
+	<field name="city" class="java.lang.String"/>
+	<field name="national_id" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="emergency" class="java.lang.Boolean"/>
+	<field name="department" class="java.lang.String"/>
+	<field name="payment" class="java.lang.String"/>
+	<field name="diagnosis" class="java.lang.String"/>
+	<field name="bed_number" class="java.lang.String"/>
+	<field name="room_number" class="java.lang.String"/>
+	<field name="patient_type" class="java.lang.String"/>
+	<field name="test_id" class="java.math.BigDecimal"/>
+	<field name="test_name" class="java.lang.String"/>
+	<field name="test_description" class="java.lang.String"/>
+	<field name="test_sect_id" class="java.math.BigDecimal"/>
+	<field name="test_section_id" class="java.math.BigDecimal"/>
+	<field name="test_section_description" class="java.lang.String"/>
+	<field name="note" class="java.lang.String"/>
+	<field name="completed_date" class="java.sql.Timestamp"/>
+	<field name="id" class="java.math.BigDecimal"/>
+	<field name="dict_entry" class="java.math.BigDecimal"/>
+	<field name="analyte_id" class="java.math.BigDecimal"/>
+	<field name="result_type" class="java.lang.String"/>
+	<field name="min" class="java.lang.Double"/>
+	<field name="max" class="java.lang.Double"/>
+	<field name="unit" class="java.lang.String"/>
+	<field name="result" class="java.lang.String"/>
+	<field name="last_updated" class="java.sql.Timestamp"/>
+	<field name="page_break" class="java.lang.Integer"/>
+	<field name="test_bold" class="java.lang.Integer"/>
+	<field name="report_type" class="java.lang.Integer"/>
+	<field name="is_bold" class="java.lang.Boolean"/>
+	<field name="result_user" class="java.lang.String"/>
+	<field name="patient_user" class="java.lang.String"/>
+	<variable name="count" class="java.lang.Integer" incrementType="Group" incrementGroup="patient" calculation="Count">
+		<variableExpression><![CDATA[new Integer(1)]]></variableExpression>
+	</variable>
+	<variable name="val" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 251 && $F{result} != null)? $F{result} : $V{val}]]></variableExpression>
+	</variable>
+	<variable name="val_1" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 225)  && $F{result} != null)? $F{result} : $V{val_1}]]></variableExpression>
+	</variable>
+	<variable name="val_2" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 226 && $F{result} != null)? $F{result} : $V{val_2}]]></variableExpression>
+	</variable>
+	<variable name="val_3" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 228 && $F{result} != null)? $F{result} : $V{val_3}]]></variableExpression>
+	</variable>
+	<variable name="val_4" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() ==  230 && $F{result} != null)? $F{result} : $V{val_4}]]></variableExpression>
+	</variable>
+	<variable name="val_5" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 232 && $F{result} != null)? $F{result} : $V{val_5}]]></variableExpression>
+	</variable>
+	<variable name="val_6" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 234 && $F{result} != null)? $F{result} : $V{val_6}]]></variableExpression>
+	</variable>
+	<variable name="val_7" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 409 && $F{result} != null)? $F{result} : $V{val_7}]]></variableExpression>
+	</variable>
+	<variable name="val_8" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 411  && $F{result} != null)? $F{result} : $V{val_8}]]></variableExpression>
+	</variable>
+	<variable name="val_9" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 227  && $F{result} != null)? $F{result} : $V{val_9}]]></variableExpression>
+	</variable>
+	<variable name="val_10" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 229 && $F{result} != null)? $F{result} : $V{val_10}]]></variableExpression>
+	</variable>
+	<variable name="val_11" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 231 && $F{result} != null)? $F{result} : $V{val_11}]]></variableExpression>
+	</variable>
+	<variable name="val_12" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 233 && $F{result} != null)? $F{result} : $V{val_12}]]></variableExpression>
+	</variable>
+	<variable name="val_13" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 235 && $F{result} != null)? $F{result} : $V{val_13}]]></variableExpression>
+	</variable>
+	<variable name="val_14" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 408 && $F{result} != null)? $F{result} : $V{val_14}]]></variableExpression>
+	</variable>
+	<variable name="val_15" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 410 && $F{result} != null)? $F{result} : $V{val_15}]]></variableExpression>
+	</variable>
+	<variable name="val_16" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 238) && $F{result} != null)? $F{result} : $V{val_16}]]></variableExpression>
+	</variable>
+	<variable name="val_17" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 239)  && $F{result} != null)? $F{result} : $V{val_17}]]></variableExpression>
+	</variable>
+	<variable name="val_18" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 240 || $F{test_id}.doubleValue() == 773)  && $F{result} != null)? $F{result} : $V{val_18}]]></variableExpression>
+	</variable>
+	<variable name="val_19" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 241 || $F{test_id}.doubleValue() == 964)  && $F{result} != null)? $F{result} : $V{val_19}]]></variableExpression>
+	</variable>
+	<variable name="val_20" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 242  && $F{result} != null)? $F{result} : $V{val_20}]]></variableExpression>
+	</variable>
+	<variable name="val_21" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 243 && $F{result} != null)? $F{result} : $V{val_21}]]></variableExpression>
+	</variable>
+	<variable name="val_22" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 245)  && $F{result} != null)? $F{result} : $V{val_22}]]></variableExpression>
+	</variable>
+	<variable name="val_23" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 246) && $F{result} != null)? $F{result} : $V{val_23}]]></variableExpression>
+	</variable>
+	<variable name="val_24" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[(($F{test_id}.doubleValue() == 247)  && $F{result} != null)? $F{result} : $V{val_24}]]></variableExpression>
+	</variable>
+	<variable name="val_25" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 251 && $F{result} != null)? $F{result} : $V{val_25}]]></variableExpression>
+	</variable>
+	<variable name="val_26" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 412  && $F{result} != null)? $F{result} : $V{val_26}]]></variableExpression>
+	</variable>
+	<variable name="val_27" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 203)? $F{result} : $V{val_27}]]></variableExpression>
+	</variable>
+	<variable name="val_28" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 204)? $F{result} : $V{val_28}]]></variableExpression>
+	</variable>
+	<variable name="val_29" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 215
+ ? $F{result} : $V{val_29}]]></variableExpression>
+	</variable>
+	<variable name="val_30" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 217
+ ? $F{result} : $V{val_30}]]></variableExpression>
+	</variable>
+	<variable name="val_31" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 216
+ ? $F{result} : $V{val_31}]]></variableExpression>
+	</variable>
+	<variable name="val_32" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 395 ? $F{result} : $V{val_32}]]></variableExpression>
+	</variable>
+	<variable name="val_33" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 396 ? $F{result} : $V{val_33}]]></variableExpression>
+	</variable>
+	<variable name="val_34" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 218
+ ? $F{result} : $V{val_34}]]></variableExpression>
+	</variable>
+	<variable name="val_35" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 219
+ ? $F{result} : $V{val_35}]]></variableExpression>
+	</variable>
+	<variable name="val_36" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 220
+ ? $F{result} : $V{val_36}]]></variableExpression>
+	</variable>
+	<variable name="val_37" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 221
+ ? $F{result} : $V{val_37}]]></variableExpression>
+	</variable>
+	<variable name="abo" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[($F{test_id}.doubleValue() == 207 && $F{result_type}.equals( "D" ))
+ ? $F{result} : $V{abo}]]></variableExpression>
+	</variable>
+	<variable name="rh" class="java.lang.String" resetType="Group" resetGroup="name">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 208
+ ? $F{result} : $V{rh}]]></variableExpression>
+	</variable>
+	<variable name="result_user" class="java.lang.String" resetType="Group" resetGroup="patient">
+		<variableExpression><![CDATA[($V{result_user} == null && $F{result_user} != null) ?
+$F{result_user} : (
+($F{result_user} != null && !$V{result_user}.contains($F{result_user})) ?
+($V{result_user} + ", " + $F{result_user}) : $V{result_user})]]></variableExpression>
+	</variable>
+	<variable name="note" class="java.lang.String" resetType="Group" resetGroup="patient">
+		<variableExpression><![CDATA[$F{note} != null ?
+($V{note} == null ? $F{note} : ($V{note} + ". " + $F{note})) :
+$V{note}]]></variableExpression>
+	</variable>
+	<variable name="collection_date" class="java.sql.Timestamp" resetType="Group" resetGroup="patient">
+		<variableExpression><![CDATA[($F{collection_date} != null) ?
+(($V{collection_date} != null) ?
+ (($F{collection_date}.before($V{collection_date})) ?
+ $F{collection_date} : $V{collection_date}) : $F{collection_date})
+: $V{collection_date}]]></variableExpression>
+	</variable>
+	<group name="patient">
+		<groupExpression><![CDATA[$F{person_id}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<group name="name">
+		<groupExpression><![CDATA[$F{accession_number}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="40" splitType="Stretch">
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="176" y="0" width="163" height="40"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{name}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="91" y="0" width="85" height="40" isPrintWhenDetailOverflows="true"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{accession_number}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0" isBlankWhenNull="true">
+					<reportElement key="textField" x="339" y="0" width="40" height="40"/>
+					<box rightPadding="1">
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[($F{gender}.equals("Nam")) ?
+($F{age}.equals("") ? $F{birth_date} : $F{age}) : null]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-5" x="1045" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_1}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-20" x="1075" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_2}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-22" x="1110" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_3}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-42" x="0" y="0" width="31" height="40"/>
+					<box rightPadding="1">
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{count}]]></textFieldExpression>
+				</textField>
+				<textField pattern="###0" isBlankWhenNull="true">
+					<reportElement key="textField-45" x="379" y="0" width="40" height="40"/>
+					<box rightPadding="1">
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[($F{gender}.equals("Nữ")) ?
+($F{age}.equals("") ? $F{birth_date} : $F{age}) : null]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" x="595" y="0" width="70" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{payment}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-57" x="1145" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_4}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-58" x="1180" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_5}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="550" y="0" width="45" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{department}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="725" y="0" width="95" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{diagnosis}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-60" x="1215" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_6}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-61" x="1250" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_7}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-62" x="1285" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_8}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-63" x="1320" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_9}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-64" x="1350" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_10}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-65" x="1380" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_11}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-66" x="1415" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_12}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-67" x="1445" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_13}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-68" x="1475" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_14}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-69" x="2190" y="0" width="52" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_32}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-71" x="983" y="0" width="62" height="40" isPrintWhenDetailOverflows="true"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-72" x="2242" y="0" width="52" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_33}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-73" x="2398" y="0" width="52" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="6" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{note}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-74" x="1505" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_15}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-75" x="1535" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_16}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-76" x="1565" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_17}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-77" x="1595" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_18}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-78" x="1625" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_19}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-79" x="1655" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_20}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-80" x="1685" y="0" width="35" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_21}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-81" x="1720" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_22}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-82" x="1750" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_23}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-83" x="1780" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_24}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-84" x="1810" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_25}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-85" x="1840" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_26}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-86" x="1870" y="0" width="40" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_27}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-87" x="1910" y="0" width="40" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_28}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-88" x="1950" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_29}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-89" x="1980" y="0" width="40" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_30}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-90" x="2020" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_31}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField" x="31" y="0" width="60" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$V{collection_date}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="419" y="0" width="131" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[(($F{street} == null || $F{street}.equals("")) ? "" : ($F{street} + " ")) +
+(($F{ward} == null || $F{ward}.equals(""))  ? "" : ($F{ward} + " ")) +
+(($F{district} == null || $F{district}.equals("")) ? "" : ($F{district} + " ")) +
+(($F{city} == null || $F{city}.equals("")) ? "" : $F{city})]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-91" x="2050" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_34}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-92" x="2120" y="0" width="40" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_36}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-93" x="2080" y="0" width="40" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_35}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-94" x="2160" y="0" width="30" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{val_37}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-95" x="2294" y="0" width="52" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{abo}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-96" x="2346" y="0" width="52" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="8" isBold="false" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{rh}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-97" stretchType="RelativeToBandHeight" x="863" y="0" width="60" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{patient_user}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-98" stretchType="RelativeToBandHeight" x="923" y="0" width="60" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{result_user}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-99" x="820" y="0" width="43" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{external_id}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField-100" stretchType="RelativeToBandHeight" x="665" y="0" width="60" height="40"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="10" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{patient_type}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-359" mode="Opaque" x="339" y="60" width="80" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Tuổi]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-361" mode="Opaque" x="550" y="60" width="45" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Khoa]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-363" mode="Opaque" x="91" y="60" width="85" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-365" mode="Opaque" x="176" y="60" width="163" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Họ và tên
+bệnh nhân]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-412" mode="Opaque" x="0" y="60" width="31" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-417" mode="Opaque" x="1045" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[ WBC ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-418" mode="Opaque" x="1075" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[NEU%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-420" mode="Opaque" x="1110" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[LYM%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-442" style="vietnamese" x="0" y="0" width="2450" height="40"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="18" isBold="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[SỔ XÉT NGHIỆM HUYẾT HỌC]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-46" x="0" y="40" width="2450" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="11" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Từ ngày " + $P{Start_Received_Date}.getDate() + " tháng " + ($P{Start_Received_Date}.getMonth() + 1) + " năm " + String.valueOf($P{Start_Received_Date}.getYear() + 1900) + "  -  Đến ngày " + $P{End_Received_Date}.getDate() + " tháng " + ($P{End_Received_Date}.getMonth() + 1) + " năm " + ($P{End_Received_Date}.getYear() + 1900)]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-454" mode="Opaque" x="595" y="60" width="70" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Loại
+thanh toán]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-455" style="vietnamese" x="339" y="80" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="true" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Nam]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-456" style="vietnamese" x="379" y="80" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="true" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Nữ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-457" mode="Opaque" x="1145" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MON%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-458" mode="Opaque" x="1180" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[EOS%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-459" mode="Opaque" x="419" y="60" width="131" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Địa Chỉ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-460" mode="Opaque" x="725" y="60" width="95" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Chẩn Đoán]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-461" mode="Opaque" x="1215" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[BAS%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-462" mode="Opaque" x="1250" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[ALY%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-463" mode="Opaque" x="1285" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[LIC%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-464" mode="Opaque" x="1320" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[NEU#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-465" mode="Opaque" x="1350" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[LYM#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-466" mode="Opaque" x="1380" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MON#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-467" mode="Opaque" x="1415" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[EOS#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-468" mode="Opaque" x="1445" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[BAS#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-469" mode="Opaque" x="1475" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[ALY#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-470" mode="Opaque" x="2190" y="60" width="52" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[T máu chảy]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-471" mode="Opaque" x="31" y="60" width="60" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Ngày Tháng]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-472" mode="Opaque" x="983" y="60" width="62" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Loại Máy Chạy]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-473" mode="Opaque" x="2242" y="60" width="52" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[T máu đông]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-474" mode="Opaque" x="2398" y="60" width="52" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[GHI CHÚ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-475" mode="Opaque" x="1505" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[LIC#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-476" mode="Opaque" x="1535" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[RBC]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-477" mode="Opaque" x="1565" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[HGB]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-478" mode="Opaque" x="1595" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[HCT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-479" mode="Opaque" x="1625" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MCV]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-480" mode="Opaque" x="1655" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MCH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-481" mode="Opaque" x="1685" y="60" width="35" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MCHC]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-482" mode="Opaque" x="1720" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[RDW]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-483" mode="Opaque" x="1750" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PLT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-484" mode="Opaque" x="1780" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[MPV]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-485" mode="Opaque" x="1810" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PCT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-486" mode="Opaque" x="1840" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PDW]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-487" mode="Opaque" x="1870" y="60" width="40" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Giờ 1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-488" mode="Opaque" x="1910" y="60" width="40" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Giờ 2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-489" mode="Opaque" x="1950" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PT(s)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-490" mode="Opaque" x="1980" y="60" width="40" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PT(%)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-491" mode="Opaque" x="2020" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[PT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-492" mode="Opaque" x="2050" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[INR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-493" mode="Opaque" x="2120" y="60" width="40" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[APTT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-494" mode="Opaque" x="2080" y="60" width="40" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[APTT
+(s)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-495" mode="Opaque" x="2160" y="60" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[FBG]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-496" mode="Opaque" x="2294" y="60" width="52" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Nhóm máu
+ABO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-497" mode="Opaque" x="2346" y="60" width="52" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Rh]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-498" mode="Opaque" x="863" y="60" width="60" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Người nhập
+thông tin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-499" mode="Opaque" x="923" y="60" width="60" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Người điền
+kết quả]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-500" mode="Opaque" x="820" y="60" width="43" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Mã Số 1]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-501" mode="Opaque" x="665" y="60" width="60" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="10" isBold="true" isItalic="false" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Loại
+bệnh nhân]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

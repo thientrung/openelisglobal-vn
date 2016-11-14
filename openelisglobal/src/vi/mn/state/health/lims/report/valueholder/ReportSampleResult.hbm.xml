@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="vi.mn.state.health.lims.report.valueholder.ReportSampleResult"
+		table="test_result_v">
+		<id name="stt" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+			<column name="stt" />
+		</id>
+		<property name="personId" type="java.math.BigDecimal">
+			<column name="person_id" />
+		</property>
+		<property name="patientId" type="java.math.BigDecimal">
+			<column name="patient_id" />
+		</property>
+		<property name="accessNumber" type="java.lang.String">
+			<column name="accession_number" />
+		</property>
+		<property name="docter" type="java.lang.String">
+			<column name="docter" />
+		</property>
+		<property name="collectionDate" type="java.sql.Timestamp">
+			<column name="collection_date" />
+		</property>
+		<property name="nationalId" type="java.lang.String">
+			<column name="national_id" />
+		</property>
+		<property name="age" type="java.lang.Double">
+			<column name="age_old" />
+		</property>
+		<property name="monthBegin" type="java.lang.Double">
+			<column name="month_begin" />
+		</property>
+		<property name="monthEnd" type="java.lang.Double">
+			<column name="month_end" />
+		</property>
+		<property name="birthYear" type="java.lang.Double">
+			<column name="birthyear" />
+		</property>
+		<property name="birthMonth" type="java.lang.Double">
+			<column name="birthmonth" />
+		</property>
+		<property name="birthDay" type="java.lang.Double">
+			<column name="birthday" />
+		</property>
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+		<property name="gender" type="java.lang.String">
+			<column name="gender" />
+		</property>
+		<property name="sampleItem" type="java.math.BigDecimal">
+			<column name="sample_item_id" />
+		</property>
+		<property name="typeSampleId" type="java.math.BigDecimal">
+			<column name="type_of_sample_id" />
+		</property>
+		<property name="typeSample" type="java.lang.String">
+			<column name="type_of_sample" />
+		</property>
+		<property name="testId" type="java.math.BigDecimal">
+			<column name="test_id" />
+		</property>
+		<property name="testName" type="java.lang.String">
+			<column name="test_name" />
+		</property>
+		<property name="result" type="java.lang.String">
+			<column name="result" />
+		</property>
+		<property name="resultValue" type="java.lang.String">
+			<column name="result_value" />
+		</property>
+		<property name="resultType" type="java.lang.String">
+			<column name="result_type" />
+		</property>
+		<property name="loilc" type="java.lang.String">
+			<column name="loinc" />
+		</property>
+		<property name="reportDescriptoon" type="java.lang.String">
+			<column name="reporting_description" />
+		</property>
+		<property name="sortOrder" type="java.math.BigDecimal">
+			<column name="sort_order" />
+		</property>
+		<property name="recieveDate" type="java.sql.Timestamp">
+			<column name="received_date" />
+		</property>
+		<property name="timeTaMax" type="java.math.BigDecimal">
+			<column name="time_ta_max" />
+		</property>
+		<property name="timeTaAverage" type="java.math.BigDecimal">
+			<column name="time_ta_average" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="testSectionId" type="java.math.BigDecimal">
+			<column name="test_section_id" />
+		</property>
+		<property name="testSection" type="java.lang.String">
+			<column name="test_section" />
+		</property>
+		<property name="testSectionOrder" type="java.sql.Timestamp">
+			<column name="test_section_order" />
+		</property>
+		<property name="paymentType" type="java.lang.String">
+			<column name="payment_type" />
+		</property>
+		<property name="department" type="java.lang.String">
+			<column name="department" />
+		</property>
+		<property name="isuranceNumber" type="java.lang.String">
+			<column name="isurance_number" />
+		</property>
+		<property name="address" type="java.lang.String">
+			<column name="address" />
+		</property>
+		<property name="patientDiagnosis" type="java.lang.String">
+			<column name="patient_diagnosis" />
+		</property>
+		<property name="patientType" type="java.lang.String">
+			<column name="patient_type" />
+		</property>
+		<property name="hour" type="java.lang.String">
+			<column name="hour" />
+		</property>
+		<property name="city" type="java.lang.String">
+			<column name="city" />
+		</property>
+		<property name="organizationName" type="java.lang.String">
+			<column name="organization_name" />
+		</property>
+		<property name="resultDo" type="java.lang.String">
+			<column name="result_do" />
+		</property>
+		<property name="resultDate" type="java.sql.Timestamp">
+			<column name="result_date" />
+		</property>
+		<property name="chartNumber" type="java.lang.String">
+			<column name="chart_number" />
+		</property>
+	</class>
+</hibernate-mapping>

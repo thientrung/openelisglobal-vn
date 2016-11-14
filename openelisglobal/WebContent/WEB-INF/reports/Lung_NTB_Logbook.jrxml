@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Lung_NTB_Logbook" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="Start_Received_Date" class="java.util.Date">
+		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
+	</parameter>
+	<parameter name="End_Received_Date" class="java.util.Date">
+		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT s.id as sample_id,si.id as sample_item_id, s.accession_number,
+    si.collection_date,
+    s.received_date,
+    tos.description as type_of_sample,
+    ps.first_name AS doctor,
+    p.entered_birth_date,
+    p.birth_date,
+    per.first_name as patient_name,
+    CASE WHEN per.age IS NOT NULL THEN per.age
+      WHEN per.age IS NULL THEN to_char(p.birth_date, 'yyyy')
+      END AS age,
+    age_unit.value AS age_unit,
+        CASE
+            WHEN p.gender::text = 'M'::text THEN 'Nam'::text
+            WHEN p.gender::text = 'F'::text THEN 'Nữ'::text
+            ELSE 'Không xác định'::text
+        END AS gender,
+    (((
+        CASE
+            WHEN per.street_address IS NOT NULL OR rtrim(per.street_address::text, ' '::text) <> ''::text THEN per.street_address
+            ELSE ''::character varying
+        END::text || ', '::text) || ward.value::text) || ', '::text) || district_value.dict_entry::text || ', ' || city_value.dict_entry AS address,
+    per.street_address as street, ward.value AS ward, district_value.dict_entry AS district,
+    department_value.dict_entry AS department,
+    diagnosis.value AS diagnosis,
+    bed.value AS bed_number,
+    room.value AS room_number,
+    p.external_id,
+    pt.description AS patient_type,
+    payment.value AS payment_type,
+    p.national_id,
+    p.chart_number,
+    urgency.value AS emergency,
+    t.id AS test_id,
+    t.name AS test_name,
+    t.description AS test_description,
+    r.min_normal,r.max_normal,
+    uom.description AS unit,
+    ts.description AS test_section_description,
+    ts.id AS test_section_id,
+    CASE WHEN r.result_type::text = 'D'::text THEN dict.dict_entry ELSE r.value END AS result,
+    r.test_result_id,
+    r.parent_id,
+    r.result_type,
+    org.id AS organization_id,
+    org.name AS organization_name,
+    p.id AS patient_id,
+    a.completed_date AS result_date,
+    r.lastupdated,
+    r.value AS original_result,
+    dict.id as dict_id,
+    city_value.dict_entry AS city,
+    s.illness_date,
+	note.text as note
+   FROM sample s
+     JOIN sample_requester sr ON sr.sample_id = s.id AND sr.requester_type_id = 1::numeric
+     JOIN organization org ON sr.requester_id = org.id
+     JOIN sample_item si ON si.samp_id = s.id
+     JOIN type_of_sample tos ON si.typeosamp_id = tos.id
+     JOIN sample_human sh ON sh.samp_id = s.id
+     JOIN patient p ON sh.patient_id = p.id
+     JOIN person per ON p.person_id = per.id
+     LEFT JOIN person_address ward ON ward.person_id = per.id AND ward.address_part_id = 8::numeric
+     LEFT JOIN person_address district ON district.person_id = per.id AND district.address_part_id = 7::numeric
+     LEFT JOIN dictionary district_value ON district.value::text = district_value.id::text
+     LEFT JOIN person_address city ON city.person_id = per.id AND city.address_part_id = 3::numeric
+     LEFT JOIN dictionary city_value ON city.value::text = city_value.id::text
+     LEFT JOIN sample_requester pr ON pr.sample_id = s.id AND pr.requester_type_id = 2::numeric
+     LEFT JOIN person ps ON pr.requester_id = ps.id
+     JOIN analysis a ON a.sampitem_id = si.id
+     JOIN test t ON a.test_id = t.id
+     JOIN test_section ts ON t.test_section_id = ts.id
+     LEFT JOIN unit_of_measure uom ON t.uom_id = uom.id
+     JOIN result r ON r.analysis_id = a.id
+     LEFT JOIN dictionary dict ON r.value::text = dict.id::text
+     LEFT JOIN observation_history payment ON payment.sample_id = s.id AND payment.observation_history_type_id = 2::numeric
+     LEFT JOIN observation_history urgency ON urgency.sample_id = s.id AND urgency.observation_history_type_id = 5::numeric
+     LEFT JOIN observation_history diagnosis ON diagnosis.sample_id = s.id AND diagnosis.observation_history_type_id = 6::numeric
+     LEFT JOIN observation_history bed ON bed.sample_id = s.id AND bed.observation_history_type_id = 7::numeric
+     LEFT JOIN observation_history room ON room.sample_id = s.id AND room.observation_history_type_id = 8::numeric
+     LEFT JOIN observation_history department ON department.sample_id = s.id AND department.observation_history_type_id = 9::numeric
+     LEFT JOIN dictionary department_value ON department.value::text = department_value.id::text
+     LEFT JOIN observation_history age ON age.sample_id = s.id AND age.observation_history_type_id = 10::numeric
+     LEFT JOIN observation_history age_unit ON age_unit.sample_id = s.id AND age_unit.observation_history_type_id = 11::numeric
+     LEFT JOIN patient_patient_type ppt ON ppt.patient_id = p.id
+     LEFT JOIN patient_type pt ON ppt.patient_type_id = pt.id
+     LEFT JOIN note on note.reference_id = a.id
+  WHERE r.value::text <> ''::text AND r.value IS NOT NULL AND r.value::text <> '0'
+	and t.id in (262)
+	AND s.received_date::DATE BETWEEN $P{Start_Received_Date} AND $P{End_Received_Date}
+ORDER BY s.received_date,s.accession_number,si.id,t.sort_order]]>
+	</queryString>
+	<field name="sample_id" class="java.math.BigDecimal"/>
+	<field name="sample_item_id" class="java.math.BigDecimal"/>
+	<field name="accession_number" class="java.lang.String"/>
+	<field name="collection_date" class="java.sql.Timestamp"/>
+	<field name="received_date" class="java.sql.Timestamp"/>
+	<field name="type_of_sample" class="java.lang.String"/>
+	<field name="doctor" class="java.lang.String"/>
+	<field name="entered_birth_date" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Timestamp"/>
+	<field name="patient_name" class="java.lang.String"/>
+	<field name="age" class="java.lang.String"/>
+	<field name="age_unit" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="street" class="java.lang.String"/>
+	<field name="ward" class="java.lang.String"/>
+	<field name="district" class="java.lang.String"/>
+	<field name="department" class="java.lang.String"/>
+	<field name="diagnosis" class="java.lang.String"/>
+	<field name="bed_number" class="java.lang.String"/>
+	<field name="room_number" class="java.lang.String"/>
+	<field name="external_id" class="java.lang.String"/>
+	<field name="patient_type" class="java.lang.String"/>
+	<field name="payment_type" class="java.lang.String"/>
+	<field name="national_id" class="java.lang.String"/>
+	<field name="chart_number" class="java.lang.String"/>
+	<field name="emergency" class="java.lang.String"/>
+	<field name="test_id" class="java.math.BigDecimal"/>
+	<field name="test_name" class="java.lang.String"/>
+	<field name="test_description" class="java.lang.String"/>
+	<field name="min_normal" class="java.lang.Double"/>
+	<field name="max_normal" class="java.lang.Double"/>
+	<field name="unit" class="java.lang.String"/>
+	<field name="test_section_description" class="java.lang.String"/>
+	<field name="test_section_id" class="java.math.BigDecimal"/>
+	<field name="result" class="java.lang.String"/>
+	<field name="test_result_id" class="java.math.BigDecimal"/>
+	<field name="parent_id" class="java.math.BigDecimal"/>
+	<field name="result_type" class="java.lang.String"/>
+	<field name="organization_id" class="java.math.BigDecimal"/>
+	<field name="organization_name" class="java.lang.String"/>
+	<field name="patient_id" class="java.math.BigDecimal"/>
+	<field name="result_date" class="java.sql.Timestamp"/>
+	<field name="lastupdated" class="java.sql.Timestamp"/>
+	<field name="original_result" class="java.lang.String"/>
+	<field name="dict_id" class="java.math.BigDecimal"/>
+	<field name="city" class="java.lang.String"/>
+	<field name="illness_date" class="java.sql.Timestamp"/>
+	<field name="note" class="java.lang.String"/>
+	<variable name="stt" class="java.lang.Integer" incrementType="Group" incrementGroup="accession_number" calculation="Count">
+		<variableExpression><![CDATA[new Integer(0)]]></variableExpression>
+	</variable>
+	<variable name="lastupdated" class="java.sql.Timestamp" resetType="Group" resetGroup="accession_number" calculation="Highest">
+		<variableExpression><![CDATA[$F{lastupdated}]]></variableExpression>
+	</variable>
+	<variable name="culture" class="java.lang.String" resetType="Group" resetGroup="accession_number">
+		<variableExpression><![CDATA[$F{test_id}.doubleValue() == 262 ? $F{result} : $V{culture}]]></variableExpression>
+	</variable>
+	<variable name="age" class="java.lang.String" resetType="Group" resetGroup="accession_number">
+		<variableExpression><![CDATA[($F{entered_birth_date} != null &&
+    !$F{entered_birth_date}.equals(""))?
+    ($F{birth_date}.getYear() + 1900)  :
+ ($F{age_unit}.equals("Tháng") ||
+     $F{age_unit}.equals("Ngày") ? ($F{age} + " " + $F{age_unit}) : $F{age})]]></variableExpression>
+		<initialValueExpression><![CDATA[($F{entered_birth_date} != null &&
+    !$F{entered_birth_date}.equals(""))?
+    ($F{birth_date}.getYear() + 1900)  :
+ ($F{age_unit}.equals("Tháng") ||
+     $F{age_unit}.equals("Ngày") ? ($F{age} + " " + $F{age_unit}) : $F{age})]]></initialValueExpression>
+	</variable>
+	<group name="accession_number">
+		<groupExpression><![CDATA[$F{accession_number}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="30" splitType="Stretch">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-1" stretchType="RelativeToBandHeight" x="0" y="0" width="30" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{stt}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-2" stretchType="RelativeToBandHeight" x="88" y="0" width="64" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{accession_number}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-3" stretchType="RelativeToBandHeight" x="152" y="0" width="155" height="30"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{patient_name}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-6" stretchType="RelativeToBandHeight" x="522" y="0" width="68" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{department}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField-7" stretchType="RelativeToBandHeight" x="30" y="0" width="58" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$F{received_date}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-8" stretchType="RelativeToBandHeight" x="590" y="0" width="62" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{diagnosis}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-9" stretchType="RelativeToBandHeight" x="387" y="0" width="135" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[(($F{street} == null || $F{street}.equals("")) ? "" : ($F{street} + " ")) +
+(($F{ward} == null || $F{ward}.equals(""))  ? "" : ($F{ward} + " ")) +
+(($F{district} == null || $F{district}.equals("")) ? "" : ($F{district} + " ")) +
+(($F{city} == null || $F{city}.equals("")) ? "" : $F{city})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField-11" stretchType="RelativeToBandHeight" x="745" y="0" width="93" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$V{lastupdated}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-12" stretchType="RelativeToBandHeight" x="652" y="0" width="93" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$V{culture}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-5" stretchType="RelativeToBandHeight" x="307" y="0" width="40" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[($F{gender}.equals("Nam")) ?
+($F{age}.equals("") ? $F{birth_date} : $F{age}) : ""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-6" stretchType="RelativeToBandHeight" x="347" y="0" width="40" height="30"/>
+					<box>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Arial" size="9" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[($F{gender}.equals("Nữ")) ?
+($F{age}.equals("") ? $F{birth_date} : $F{age}) : null]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="82" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-1" mode="Opaque" x="0" y="42" width="30" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-2" mode="Opaque" x="30" y="42" width="58" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Ngày nhận
+mẫu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-3" mode="Opaque" x="88" y="42" width="64" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Số barcode]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-4" mode="Opaque" x="152" y="42" width="155" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Họ và tên bệnh nhân]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-5" x="307" y="42" width="80" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Tuổi]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-6" x="307" y="62" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Nam]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-7" x="347" y="62" width="40" height="20"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Nữ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-8" mode="Opaque" x="522" y="42" width="68" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Khoa]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-9" mode="Opaque" x="590" y="42" width="62" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Chẩn đoán]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" x="0" y="0" width="838" height="22"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Arial" size="18" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[SỔ KẾT QUẢ NUÔI CẤY VI KHUẨN NGOÀI LAO]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-10" x="0" y="22" width="838" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Từ ngày " + $P{Start_Received_Date}.getDate() + " tháng " + ($P{Start_Received_Date}.getMonth() + 1) + " năm " + String.valueOf($P{Start_Received_Date}.getYear() + 1900) + "  -  Đến ngày " + $P{End_Received_Date}.getDate() + " tháng " + ($P{End_Received_Date}.getMonth() + 1) + " năm " + ($P{End_Received_Date}.getYear() + 1900)]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-11" mode="Opaque" x="387" y="42" width="135" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Địa chỉ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-12" mode="Opaque" x="652" y="42" width="93" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Kết quả]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-13" mode="Opaque" x="745" y="42" width="93" height="40"/>
+				<box>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" size="9" isBold="true" isItalic="false" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H" isPdfEmbedded="false"/>
+				</textElement>
+				<text><![CDATA[Ngày có kq]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TB_Patient_Report" pageWidth="595" pageHeight="842" columnWidth="584" leftMargin="11" rightMargin="0" topMargin="11" bottomMargin="4">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="vietnamese" isDefault="true" isBlankWhenNull="true" fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<parameter name="siteId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="siteName" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="directorName" class="java.lang.String"/>
+	<parameter name="headerName" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["GeneralHeader.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="usePageNumbers" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["true"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="additionalSiteInfo" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="useSTNumber" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Boolean.TRUE]]></defaultValueExpression>
+	</parameter>
+	<parameter name="leftHeaderImage" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="rightHeaderImage" class="java.io.InputStream" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT * FROM (
+SELECT distinct pa.person_id, pa.id as patient_id, s.accession_number,
+		pernew.first_name as docter, s.collection_date, pa.national_id,
+		(extract (year FROM s.received_date) - extract (year FROM pa.birth_date)) AS age_old,
+		(extract (month FROM pa.birth_date)) as month_begin,
+		(extract (month FROM current_date)) as month_end,
+		extract (year from pa.birth_date) as birthyear, extract (month from pa.birth_date) as birthmonth,
+		extract (day from pa.birth_date) as birthday,
+		CASE WHEN trim(per.first_name,' ') <> '' THEN per.first_name ELSE pa.external_id END AS name,
+		CASE WHEN pa.gender='M' THEN 'Nam' WHEN pa.gender='F' THEN 'Nữ' ELSE 'Không xác định' END AS gender,
+		 si.id AS sample_item_id, type_of_sample.id as type_of_sample_id,
+		type_of_sample.description as type_of_sample, a.test_id, test.description as test_name,
+		CASE WHEN r.result_type='D' THEN d.dict_entry ELSE r.value END AS result, r.value as result_value, r.result_type,
+		test.loinc, test.reporting_description,test.sort_order,s.received_date, test.time_ta_max, test.time_ta_average,
+		test.description, ts.id as test_section_id, ts.description as test_section, ts.lastupdated as test_section_order,
+		CASE WHEN (test.time_ta_max IS NULL OR test.time_ta_average IS NULL) AND r.result_type <> 'D' THEN false
+		WHEN (r.value ~ '^[0-9]*.?[0-9]*$') AND position(',' in r.value) = 0 AND r.result_type <> 'D' AND test.time_ta_max IS NOT NULL AND test.time_ta_average IS NOT NULL
+		      AND CAST(r.value as numeric) > test.time_ta_average AND CAST(r.value as numeric) < test.time_ta_max THEN false
+		WHEN r.result_type = 'D' AND r.value = '4' AND test.id != 26 THEN true
+		WHEN r.result_type <> 'D' AND position('>' in r.value) > 0 THEN true
+		WHEN r.result_type <> 'D' AND position('<' in r.value) > 0 THEN true
+		WHEN (r.value ~ '^[0-9]*.?[0-9]*$') AND position(',' in r.value) = 0 AND r.result_type <> 'D' AND test.time_ta_max IS NOT NULL AND test.time_ta_average IS NOT NULL
+		      AND CAST(r.value as numeric) < test.time_ta_average THEN true
+		WHEN (r.value ~ '^[0-9]*.?[0-9]*$') AND position(',' in r.value) = 0 AND r.result_type <> 'D' AND test.time_ta_max IS NOT NULL AND test.time_ta_average IS NOT NULL
+		      AND CAST(r.value as numeric) > test.time_ta_max THEN true END AS isBold
+FROM
+	sample s
+	INNER JOIN sample_item si ON si.samp_id = s.id
+	INNER JOIN analysis a ON a.sampitem_id = si.id
+	INNER JOIN type_of_sample ON si.typeosamp_id = type_of_sample.id
+	INNER JOIN sample_human sh ON sh.samp_id = s.id
+	INNER JOIN patient pa ON sh.patient_id = pa.id
+	INNER JOIN person per ON pa.person_id = per.id
+	INNER JOIN provider pro ON sh.provider_id = pro.id
+	INNER JOIN person pernew ON pro.person_id = pernew.id
+	INNER JOIN test ON test.id = a.test_id
+	INNER JOIN test_section ts ON test.test_section_id = ts.id
+	INNER JOIN result r ON r.analysis_id = a.id
+	LEFT JOIN dictionary d on r.value = d.id::character
+WHERE 	--AND a.is_reportable = 'Y'
+	1=1
+ORDER BY accession_number, sample_item_id, ts.id, sort_order ASC, result_type DESC
+) as main where main.accession_number='1670010054']]>
+	</queryString>
+	<field name="personId" class="java.math.BigDecimal"/>
+	<field name="patientId" class="java.math.BigDecimal"/>
+	<field name="accessNumber" class="java.lang.String"/>
+	<field name="docter" class="java.lang.String"/>
+	<field name="collectionDate" class="java.sql.Timestamp"/>
+	<field name="nationalId" class="java.lang.String"/>
+	<field name="age" class="java.lang.Double"/>
+	<field name="monthBegin" class="java.lang.Double"/>
+	<field name="monthEnd" class="java.lang.Double"/>
+	<field name="birthYear" class="java.lang.Double"/>
+	<field name="birthMonth" class="java.lang.Double"/>
+	<field name="birthDay" class="java.lang.Double"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="sampleItem" class="java.math.BigDecimal"/>
+	<field name="typeSampleId" class="java.math.BigDecimal"/>
+	<field name="typeSample" class="java.lang.String"/>
+	<field name="testId" class="java.math.BigDecimal"/>
+	<field name="testName" class="java.lang.String"/>
+	<field name="result" class="java.lang.String"/>
+	<field name="resultValue" class="java.lang.String"/>
+	<field name="resultType" class="java.lang.String"/>
+	<field name="loilc" class="java.lang.String"/>
+	<field name="reportDescriptoon" class="java.lang.String"/>
+	<field name="sortOrder" class="java.math.BigDecimal"/>
+	<field name="recieveDate" class="java.sql.Timestamp"/>
+	<field name="timeTaMax" class="java.math.BigDecimal"/>
+	<field name="timeTaAverage" class="java.math.BigDecimal"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="testSectionId" class="java.math.BigDecimal"/>
+	<field name="testSection" class="java.lang.String"/>
+	<field name="testSectionOrder" class="java.sql.Timestamp"/>
+	<field name="isBold" class="java.lang.String"/>
+	<field name="paymentType" class="java.lang.String"/>
+	<field name="department" class="java.lang.String"/>
+	<field name="isuranceNumber" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="patientDiagnosis" class="java.lang.String"/>
+	<field name="patientType" class="java.lang.String"/>
+	<field name="hour" class="java.lang.String"/>
+	<variable name="list_result" class="java.lang.String" resetType="Group" resetGroup="test_id">
+		<variableExpression><![CDATA[$V{list_result} == null ? $F{result} : $V{list_result} + " (" + $F{result} + ")"]]></variableExpression>
+	</variable>
+	<variable name="list_result_1" class="java.lang.String" resetType="Group" resetGroup="test_id">
+		<variableExpression><![CDATA[($V{list_result_1} == null)?$F{result}:$V{list_result_1} + " (" + $F{result} + ")"]]></variableExpression>
+	</variable>
+	<variable name="result_status" class="java.lang.String" resetType="Group" resetGroup="test_id">
+		<variableExpression><![CDATA[($F{timeTaAverage}.floatValue() > Float.valueOf($F{result}.trim()).floatValue()? "L" :
+($F{timeTaMax}.floatValue() < Float.valueOf($F{result}.trim()).floatValue()) ? "H": "")]]></variableExpression>
+	</variable>
+	<variable name="age" class="java.lang.String">
+		<variableExpression><![CDATA[$F{birthDay} !=null? String.valueOf($F{birthDay}):""]]></variableExpression>
+	</variable>
+	<group name="sample_item_id" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{typeSampleId}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="59" splitType="Stretch">
+				<staticText>
+					<reportElement key="staticText-261" positionType="Float" x="0" y="0" width="584" height="15" isRemoveLineWhenBlank="true"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-275" positionType="Float" x="336" y="35" width="248" height="18" isRemoveLineWhenBlank="true"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Trưởng Khoa Xét Nghiệm]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-23" style="vietnamese" x="336" y="15" width="248" height="20"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA["Ngày " + new java.util.Date().getDate()+ " tháng " + (new java.util.Date().getMonth() + 1) + " năm " + (new java.util.Date().getYear() + 1900)]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-276" style="vietnamese" positionType="FixRelativeToBottom" x="1" y="15" width="122" height="20"/>
+					<box rightPadding="4">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<text><![CDATA[- Ngày nhận mẫu:]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement key="textField-24" style="vietnamese" x="123" y="15" width="213" height="20"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{collectionDate}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-25" style="vietnamese" x="97" y="35" width="239" height="20"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{nationalId}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-277" style="vietnamese" positionType="FixRelativeToBottom" x="0" y="35" width="96" height="20"/>
+					<box rightPadding="4">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="12" isItalic="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<text><![CDATA[- Ghi chú:]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="test_section">
+		<groupExpression><![CDATA[$F{testSectionId}]]></groupExpression>
+		<groupHeader>
+			<band height="15" splitType="Stretch">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-27" stretchType="RelativeToTallestObject" x="1" y="0" width="161" height="15"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="11" isBold="true" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{testSection}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<group name="test_id">
+		<groupExpression><![CDATA[$F{testId}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="18" splitType="Stretch">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-3" stretchType="RelativeToTallestObject" x="0" y="0" width="162" height="18"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="styled">
+						<font fontName="DejaVu Sans" size="11" isBold="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{testName}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField" x="162" y="0" width="247" height="18"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="11" isBold="true" pdfFontName="Helvetica"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{result}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-14" x="482" y="0" width="102" height="18"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="11" isBold="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{reportDescriptoon}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-8" x="409" y="0" width="73" height="18"/>
+					<box leftPadding="5">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="DejaVu Sans" size="11" isBold="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{loilc}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="190" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-130" x="190" y="0" width="254" height="30"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="16" isBold="true" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[KẾT QUẢ XÉT NGHIỆM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-9" style="vietnamese" x="0" y="75" width="140" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[- Họ tên người bệnh:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-11" style="vietnamese" positionType="FixRelativeToBottom" x="320" y="95" width="46" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Khoa:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-12" style="vietnamese" positionType="FixRelativeToBottom" x="0" y="95" width="96" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[- Chẩn đoán:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-13" style="vietnamese" x="320" y="75" width="39" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Tuổi:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" style="vietnamese" x="140" y="75" width="180" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" style="vietnamese" x="498" y="75" width="86" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{gender}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-126" style="vietnamese" x="430" y="75" width="68" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Giới tính:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" x="190" y="30" width="254" height="15"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Bệnh phẩm: " + $F{typeSample}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-253" style="vietnamese" positionType="FixRelativeToBottom" x="0" y="115" width="110" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[- Bác sĩ điều trị :]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-4" style="vietnamese" positionType="FixRelativeToBottom" x="110" y="115" width="210" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{docter}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-254" positionType="Float" x="0" y="170" width="162" height="20"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[TÊN XÉT NGHIỆM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-255" positionType="Float" x="162" y="170" width="247" height="20" isRemoveLineWhenBlank="true"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[KẾT QUẢ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-256" positionType="Float" x="409" y="170" width="175" height="20" isRemoveLineWhenBlank="true"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true" isItalic="false" pdfFontName="Helvetica" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[GIÁ TRỊ THAM CHIẾU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-262" style="vietnamese" positionType="FixRelativeToBottom" x="0" y="155" width="584" height="15"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-265" style="vietnamese" x="320" y="115" width="73" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Số giường:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-274" style="vietnamese" positionType="FixRelativeToBottom" x="465" y="45" width="35" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isItalic="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[  Giờ:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-278" style="vietnamese" x="430" y="115" width="68" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[Buồng:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-279" style="vietnamese" x="1" y="15" width="173" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[KHOA XÉT NGHIỆM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-280" style="vietnamese" positionType="FixRelativeToBottom" x="0" y="135" width="110" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[- Loại bệnh nhân:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-281" style="vietnamese" positionType="FixRelativeToBottom" x="320" y="135" width="110" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Loại thanh toán:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="465" y="0" width="100" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="465" y="10" width="100" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accessNumber}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-273" style="vietnamese" x="1" y="0" width="173" height="15"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[SỞ Y TẾ TP. HỒ CHÍ MINH]]></text>
+			</staticText>
+			<image>
+				<reportElement x="56" y="30" width="67" height="45"/>
+				<imageExpression class="java.lang.String"><![CDATA[$P{leftHeaderImage}]]></imageExpression>
+			</image>
+			<componentElement>
+				<reportElement x="465" y="0" width="100" height="15"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="3of9" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA["1321545641333"]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField>
+				<reportElement x="97" y="95" width="223" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{patientDiagnosis}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="359" y="75" width="71" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$F{birthDay}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="365" y="95" width="133" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{department}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="135" width="154" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{paymentType}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="135" width="210" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{patientType}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="500" y="45" width="84" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{hour}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

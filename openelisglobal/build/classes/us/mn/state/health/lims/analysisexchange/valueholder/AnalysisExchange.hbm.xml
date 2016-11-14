@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="us.mn.state.health.lims.analysisexchange.valueholder.AnalysisExchange" table="ANALYSIS_EXCHANGE" optimistic-lock="version" dynamic-update="true">
+        <id name="id" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="ID" precision="10" scale="0" />
+            <generator class="sequence">
+            	<param name="sequence">analysis_exchange_seq</param>
+            </generator>
+        </id>
+        <version name="lastupdated" column="LASTUPDATED" type="timestamp" access="field"/>
+
+        <property name="externalTestId" type="java.lang.String">
+            <column name="EXTERNAL_TEST_ID" length="20" />
+        </property>  
+        <property name="assignedCode" type="java.lang.String">
+            <column name="RECEPTION_NUMBER" length="20" />
+        </property>  
+        <property name="externalAnalysisId" type="java.lang.String">
+            <column name="REQUEST_TEST_ID" length="20" />
+        </property>                        
+        <property name="internalAnalysisId" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="ANALYSIS_ID" precision="10" scale="0" />
+        </property>    
+        <property name="gotBy" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="GOT_BY" precision="10" scale="0" />
+        </property>               
+        <property name="exchangedBy" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="EXCHANGED_BY" precision="10" scale="0" />
+        </property>       
+        <property name="getDate" type="java.sql.Timestamp">
+            <column name="GET_DATE" length="23" />
+        </property>  
+        <property name="exchangedDate" type="java.sql.Timestamp">
+            <column name="EXCHANGED_DATE" length="23" />
+        </property>                
+        <property name="status" type="us.mn.state.health.lims.hibernate.resources.usertype.LIMSStringNumberUserType">
+            <column name="STATUS" precision="3" scale="0" />
+        </property>   
+        <property name="medicalNumber" type="java.lang.String">
+            <column name="MEDICAL_NUMBER" length="20" />
+        </property>          
+    </class>
+</hibernate-mapping>

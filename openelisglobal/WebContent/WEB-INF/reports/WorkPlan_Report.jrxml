@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report3" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.2100000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<parameter name="test_sect_id" class="java.lang.String"/>
+	<parameter name="panel_id" class="java.lang.String"/>
+	<parameter name="test_id" class="java.lang.String"/>
+	<parameter name="started_date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="completed_date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="received_date" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.*, s.accession_number, s.received_date, o.value, p.name, t.description as testname
+
+FROM analysis a
+  JOIN sample_item si ON si.id = a.sampitem_id
+  JOIN sample s ON s.id = si.samp_id
+  JOIN test t ON t.id = a.test_id
+  LEFT JOIN observation_history o ON s.id = o.sample_id AND o.observation_history_type_id = 5
+  LEFT JOIN sample_projects sp ON s.id = sp.samp_id
+  LEFT JOIN project p ON sp.proj_id = p.id
+
+WHERE
+
+  CASE WHEN $P{test_sect_id}::TEXT <> ''::TEXT THEN a.test_sect_id::TEXT = $P{test_sect_id}::TEXT
+    WHEN $P{panel_id}::TEXT <> ''::TEXT THEN a.test_id IN (SELECT test_id FROM panel_item WHERE panel_id::TEXT = $P{panel_id}::TEXT)
+    WHEN $P{test_id}::TEXT <> ''::TEXT THEN a.test_id::TEXT = $P{test_id}::TEXT END
+  AND CASE WHEN $P{started_date}::TEXT <> ''::TEXT  THEN to_char(a.started_date,'dd/MM/yyyy')::TEXT = $P{started_date}::TEXT ELSE s.accession_number IS NOT null END
+  AND CASE WHEN $P{completed_date}::TEXT <> ''::TEXT  THEN to_char(a.completed_date,'dd/MM/yyyy')::TEXT = $P{completed_date}::TEXT ELSE s.accession_number IS NOT null END
+  AND CASE WHEN $P{received_date}::TEXT <> ''::TEXT  THEN to_char(s.received_date,'dd/MM/yyyy')::TEXT = $P{received_date}::TEXT ELSE s.accession_number IS NOT null END
+  AND a.status_id IN (4, 7, 12, 17)
+ORDER by o.value, p.name, s.accession_number]]>
+	</queryString>
+	<field name="id" class="java.math.BigDecimal"/>
+	<field name="sampitem_id" class="java.math.BigDecimal"/>
+	<field name="test_sect_id" class="java.math.BigDecimal"/>
+	<field name="test_id" class="java.math.BigDecimal"/>
+	<field name="revision" class="java.math.BigDecimal"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="started_date" class="java.sql.Timestamp"/>
+	<field name="completed_date" class="java.sql.Timestamp"/>
+	<field name="released_date" class="java.sql.Timestamp"/>
+	<field name="printed_date" class="java.sql.Timestamp"/>
+	<field name="is_reportable" class="java.lang.String"/>
+	<field name="so_send_ready_date" class="java.sql.Timestamp"/>
+	<field name="so_client_reference" class="java.lang.String"/>
+	<field name="so_notify_received_date" class="java.sql.Timestamp"/>
+	<field name="so_notify_send_date" class="java.sql.Timestamp"/>
+	<field name="so_send_date" class="java.sql.Timestamp"/>
+	<field name="so_send_entry_by" class="java.lang.String"/>
+	<field name="so_send_entry_date" class="java.sql.Timestamp"/>
+	<field name="analysis_type" class="java.lang.String"/>
+	<field name="lastupdated" class="java.sql.Timestamp"/>
+	<field name="parent_analysis_id" class="java.math.BigDecimal"/>
+	<field name="parent_result_id" class="java.math.BigDecimal"/>
+	<field name="reflex_trigger" class="java.lang.Boolean"/>
+	<field name="status_id" class="java.math.BigDecimal"/>
+	<field name="entry_date" class="java.sql.Timestamp"/>
+	<field name="panel_id" class="java.math.BigDecimal"/>
+	<field name="referred_out" class="java.lang.Boolean"/>
+	<field name="type_of_sample_name" class="java.lang.String"/>
+	<field name="corrected" class="java.lang.Boolean"/>
+	<field name="accession_number" class="java.lang.String"/>
+	<field name="received_date" class="java.sql.Timestamp"/>
+	<field name="value" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="testname" class="java.lang.String"/>
+	<variable name="stt" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[new Integer(0)]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="40" splitType="Stretch">
+			<staticText>
+				<reportElement x="225" y="20" width="75" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Ngày nhận mẫu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="20" width="75" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Ngày bắt đầu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="375" y="20" width="80" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Thường/Khẩn cấp]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="455" y="20" width="100" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Dự Án]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="95" y="20" width="130" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Tên xét nghiệm]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="25" y="20" width="70" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[Số hiệu mẫu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="25" height="20"/>
+				<box leftPadding="1">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" isBold="true" pdfFontName="arialbd.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<text><![CDATA[STT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="16" isBold="true" pdfFontName="Helvetica" pdfEncoding="Cp1250" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[KẾ HOẠCH HOẠT ĐỘNG]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="25" y="0" width="70" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accession_number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="95" y="0" width="130" height="20"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{testname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="225" y="0" width="75" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{received_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="300" y="0" width="75" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{started_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="375" y="0" width="80" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{value}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="455" y="0" width="100" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="25" height="20"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Arial" pdfFontName="arial.ttf" pdfEncoding="Identity-H"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{stt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
